@@ -1,0 +1,3227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>后来的我们 · 먼 훗날 우리의 HSK 1~9급</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Noto Serif KR, Noto Sans KR, Noto Sans SC (간체 전용) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans KR"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        serif: ['"Noto Serif KR"', 'serif'],
+                        sc: ['"Noto Sans SC"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 영화 《后来的我们》 시네마틱 기본 스타일 */
+        body {
+            background-color: #09090b;
+            color: #f4f4f5;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 풀스크린 고정 배경 (관리자 배경 미설정 시 다크 시네마틱 그라데이션, 설정 시 원본 사진 표시) */
+        .cinema-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background-color: #0b0d14;
+            background-image:
+                radial-gradient(circle at 78% 22%, rgba(251, 191, 36, 0.22) 0%, transparent 38%),
+                radial-gradient(circle at 22% 72%, rgba(225, 29, 72, 0.22) 0%, transparent 45%),
+                radial-gradient(circle at 50% 45%, rgba(30, 41, 59, 0.55) 0%, rgba(9, 9, 11, 0.96) 75%),
+                linear-gradient(180deg, #0f172a 0%, #111118 48%, #09090b 100%);
+            background-size: cover;
+            background-position: center 25%;
+            background-repeat: no-repeat;
+            transition: filter 1.2s cubic-bezier(0.22, 1, 0.36, 1), transform 1.5s ease;
+        }
+
+        /* 관리자가 배경 사진을 등록했을 때의 은은한 흑백 필터 */
+        .cinema-bg.has-photo {
+            filter: grayscale(40%) brightness(0.45) contrast(1.06);
+        }
+
+        /* 정답/카드 뽑기 시 세상에 따뜻한 색채가 돌아오는 연출 */
+        body.warm-bloom .cinema-bg.has-photo {
+            filter: grayscale(0%) brightness(0.62) saturate(1.22) contrast(1.04);
+            transform: scale(1.02);
+        }
+
+        body.warm-bloom .cinema-bg:not(.has-photo) {
+            filter: brightness(1.18) saturate(1.3);
+        }
+
+        /* 시네마틱 비네팅 오버레이 */
+        .cinema-vignette {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 30%, rgba(15, 15, 22, 0.24) 0%, rgba(9, 9, 11, 0.78) 72%, rgba(5, 5, 8, 0.94) 100%);
+            pointer-events: none;
+            transition: background 1s ease;
+        }
+
+        body.warm-bloom .cinema-vignette {
+            background: radial-gradient(circle at 50% 35%, rgba(225, 29, 72, 0.16) 0%, rgba(245, 158, 11, 0.12) 45%, rgba(9, 9, 11, 0.82) 100%);
+        }
+
+        /* 눈 내리는 베이징 밤 캔버스 */
+        #snowCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* 다크 글래스모피즘 패널 */
+        .glass-panel {
+            background: rgba(15, 15, 20, 0.78);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+        }
+
+        .glass-card {
+            background: rgba(24, 24, 30, 0.74);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up {
+            animation: fadeInUp 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* 포토카드 3D 뒤집기 + 흑백→컬러 현상 애니메이션 */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .card-3d-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+            transform-style: preserve-3d;
+        }
+        .card-3d-inner.flipped {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .card-face-back {
+            transform: rotateY(180deg);
+        }
+        @keyframes colorizePhoto {
+            0% { filter: grayscale(100%) contrast(1.2) brightness(0.68); }
+            100% { filter: grayscale(0%) contrast(1.02) brightness(1); }
+        }
+        .photo-bloom {
+            animation: colorizePhoto 1.4s ease-out 0.35s forwards;
+            filter: grayscale(100%) contrast(1.2) brightness(0.68);
+        }
+
+        /* 커스텀 스크롤바 */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans selection:bg-rose-600 selection:text-white">
+
+    <!-- 배경 레이어 & 눈 내리는 캔버스 -->
+    <div id="cinemaBg" class="cinema-bg"></div>
+    <div class="cinema-vignette"></div>
+    <canvas id="snowCanvas"></canvas>
+
+    <!-- ===================================================================== -->
+    <!-- 1. 시네마틱 시작 화면 (닉네임 + 본인확인문자 2단계 인증 & 관리자 버튼) -->
+    <!-- ===================================================================== -->
+    <section id="splashScreen" class="relative z-20 min-h-screen flex flex-col items-center justify-center px-5 pt-10 pb-[120px]">
+        <div class="max-w-2xl w-full text-center space-y-7 animate-fade-up">
+            <!-- 영화 상단 뱃지 -->
+            <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-xs sm:text-sm tracking-widest text-amber-200/95">
+                <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                <span>2007 춘운 귀향 열차 · 北京</span>
+            </div>
+
+            <!-- 영화 타이틀 -->
+            <div class="space-y-2">
+                <h1 class="font-sc text-4xl sm:text-6xl font-bold tracking-[0.18em] text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.85)]">
+                    后来的我们
+                </h1>
+                <p class="font-serif text-sm sm:text-base text-zinc-300/90 tracking-widest">
+                    먼 훗날 우리 · HSK 1~9급 간체 중국어 아카이브
+                </p>
+            </div>
+
+            <!-- 랜덤 6대 명대사 카드 -->
+            <div class="glass-panel rounded-3xl px-6 sm:px-10 py-8 sm:py-9 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-rose-500/80 to-transparent"></div>
+                <p class="text-[11px] uppercase tracking-[0.25em] text-amber-400/85 mb-4 font-medium">
+                    Us and Them · 오늘의 기억
+                </p>
+                <blockquote id="splashQuote" class="font-serif text-lg sm:text-2xl text-white leading-relaxed sm:leading-loose font-medium break-keep">
+                    <!-- JS로 6개 명대사 중 1개 랜덤 출력 -->
+                </blockquote>
+                <div class="mt-5 flex items-center justify-center gap-2 text-xs text-zinc-400">
+                    <span class="w-6 h-[1px] bg-zinc-600"></span>
+                    <span>린젠칭 &amp; 팡샤오샤오의 이야기 속에서 배우는 중국어</span>
+                    <span class="w-6 h-[1px] bg-zinc-600"></span>
+                </div>
+            </div>
+
+            <!-- 2단계 닉네임 + 본인확인문자 인증 패널 -->
+            <div class="max-w-md mx-auto w-full glass-panel rounded-3xl p-5 sm:p-6 space-y-4">
+                <!-- 클라우드 연결 상태 배지 -->
+                <div class="flex items-center justify-between text-[11px]">
+                    <span class="text-zinc-400 font-medium">열차 탑승권 확인</span>
+                    <span id="dbStatusBadge" class="inline-flex items-center gap-1.5 text-amber-300">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
+                        <span>서버 연결 중...</span>
+                    </span>
+                </div>
+
+                <!-- 1단계: 닉네임 입력 -->
+                <div id="authStep1" class="space-y-3">
+                    <div class="text-left">
+                        <label for="splashNicknameInput" class="block text-xs text-zinc-300 mb-1.5 ml-1">이름(닉네임)을 입력하세요</label>
+                        <input
+                            id="splashNicknameInput"
+                            type="text"
+                            maxlength="16"
+                            autocomplete="off"
+                            placeholder="예: 안샹쉰"
+                            class="w-full px-4 py-3.5 rounded-2xl bg-black/60 border border-white/20 text-white placeholder-zinc-500 text-sm sm:text-base focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+                        >
+                    </div>
+                    <p id="authStep1Error" class="hidden text-xs text-rose-400 text-left px-1"></p>
+                    <button
+                        id="checkNicknameBtn"
+                        type="button"
+                        disabled
+                        class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-rose-700 via-rose-600 to-amber-600 hover:from-rose-600 hover:to-amber-500 disabled:opacity-50 text-white font-semibold text-sm sm:text-base shadow-[0_8px_28px_rgba(225,29,72,0.35)] transition-all active:scale-[0.98]"
+                    >
+                        중복 확인 / 다음 →
+                    </button>
+                </div>
+
+                <!-- 2단계: 본인확인문자 입력 (기존 유저 로그인 또는 신규 유저 등록) -->
+                <div id="authStep2" class="hidden space-y-3 animate-fade-up">
+                    <div class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10">
+                        <div class="text-left">
+                            <span class="text-[10px] text-zinc-400 block">선택한 닉네임</span>
+                            <span id="selectedNicknameDisplay" class="text-sm font-bold text-amber-300"></span>
+                        </div>
+                        <button id="backToStep1Btn" type="button" class="text-xs text-zinc-300 hover:text-white px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/15 transition-colors">
+                            변경
+                        </button>
+                    </div>
+
+                    <div id="authStep2Banner" class="p-3 rounded-xl text-xs text-left leading-relaxed border">
+                        <!-- 기존 사용자 / 신규 사용자 안내 문구 -->
+                    </div>
+
+                    <div class="text-left">
+                        <label for="verificationTextInput" class="block text-xs text-zinc-300 mb-1.5 ml-1">본인확인문자</label>
+                        <input
+                            id="verificationTextInput"
+                            type="text"
+                            maxlength="24"
+                            autocomplete="off"
+                            placeholder="예: 니하오"
+                            class="w-full px-4 py-3.5 rounded-2xl bg-black/60 border border-white/20 text-white placeholder-zinc-500 text-sm sm:text-base focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+                        >
+                    </div>
+
+                    <p id="authStep2Error" class="hidden text-xs text-rose-400 text-left px-1"></p>
+
+                    <button
+                        id="completeAuthBtn"
+                        type="button"
+                        class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-rose-700 via-rose-600 to-amber-600 hover:from-rose-600 hover:to-amber-500 disabled:opacity-50 text-white font-semibold text-sm sm:text-base shadow-[0_8px_28px_rgba(225,29,72,0.35)] transition-all active:scale-[0.98]"
+                    >
+                        입장하기 (그 시절 베이징으로)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 시작 화면 우측 하단: 관리자 전용 아이콘 버튼 -->
+        <button
+            id="openAdminAuthBtn"
+            type="button"
+            class="fixed bottom-5 right-5 z-30 inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl bg-zinc-950/80 hover:bg-zinc-900 border border-white/15 hover:border-amber-400/50 text-xs font-semibold text-zinc-300 hover:text-amber-200 backdrop-blur-md shadow-xl transition-all active:scale-95"
+            title="관리자 전용 대시보드"
+        >
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+            <span>관리자 전용</span>
+        </button>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- 2. 일반 사용자 메인 애플리케이션 (사진 업로드 버튼 완전 제거)          -->
+    <!-- ===================================================================== -->
+    <div id="mainApp" class="hidden relative z-10 min-h-screen flex flex-col">
+
+        <!-- 상단 고정 헤더 -->
+        <header class="sticky top-0 z-30 bg-zinc-950/88 backdrop-blur-xl border-b border-white/10">
+            <div class="max-w-5xl mx-auto px-3.5 sm:px-6 py-3 space-y-2.5">
+                <!-- 1행: 프로필 / 칭호 / 포인트 / 위안 / 로그아웃 -->
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-rose-700 to-amber-600 flex items-center justify-center font-sc font-bold text-white text-base sm:text-lg shadow-md shrink-0 select-none">
+                            后
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span id="headerNickname" class="font-bold text-sm text-white truncate max-w-[100px] sm:max-w-[170px]">사용자</span>
+                                <button id="openTitleModalBtn" type="button" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/20 border border-rose-400/40 text-[10px] sm:text-xs font-medium text-rose-200 hover:bg-rose-500/30 transition-colors max-w-[155px] sm:max-w-none truncate">
+                                    <span>🧣</span>
+                                    <span id="headerTitleText" class="truncate">귀향 열차 대기자</span>
+                                </button>
+                            </div>
+                            <!-- 다음 칭호까지 5,000P 프로그레스 바 -->
+                            <div class="mt-1 flex items-center gap-2">
+                                <div class="w-24 sm:w-36 h-1.5 rounded-full bg-white/10 overflow-hidden shrink-0">
+                                    <div id="headerProgressBar" class="h-full bg-gradient-to-r from-rose-500 to-amber-400 rounded-full transition-all duration-500" style="width: 0%;"></div>
+                                </div>
+                                <span id="headerPointsLabel" class="text-[11px] text-zinc-300 font-semibold whitespace-nowrap">0 P</span>
+                                <span id="headerNextTitleHint" class="hidden md:inline text-[10px] text-zinc-400 whitespace-nowrap">(다음 칭호까지 5,000P)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 우측: 보유 위안 + 칭호함 + 로그아웃 -->
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <div class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-500/15 border border-amber-400/35 text-amber-300 font-bold text-xs sm:text-sm whitespace-nowrap">
+                            <span>¥</span>
+                            <span id="headerYuan">0</span>
+                            <span class="hidden sm:inline text-[10px] font-normal text-amber-200/80">위안</span>
+                        </div>
+                        <button id="logoutBtn" type="button" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white text-xs font-medium transition-colors whitespace-nowrap" title="로그아웃 (시작 화면)">
+                            로그아웃
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2행: 모바일 최적화 4탭 네비게이션 (아이콘 위 + 한 줄 텍스트 아래) -->
+                <nav class="grid grid-cols-4 gap-1.5 bg-white/5 p-1 rounded-2xl border border-white/10" role="tablist">
+                    <button data-nav="quiz" type="button" class="nav-tab flex flex-col items-center justify-center gap-0.5 py-2 px-1 rounded-xl transition-all bg-gradient-to-r from-rose-600/90 to-amber-600/90 text-white shadow">
+                        <span class="text-base leading-none">📝</span>
+                        <span class="text-[11px] sm:text-xs font-semibold whitespace-nowrap leading-tight">HSK 퀴즈</span>
+                    </button>
+                    <button data-nav="shop" type="button" class="nav-tab flex flex-col items-center justify-center gap-0.5 py-2 px-1 rounded-xl transition-all text-zinc-300 hover:text-white hover:bg-white/5">
+                        <span class="text-base leading-none">🎞️</span>
+                        <span class="text-[11px] sm:text-xs font-medium whitespace-nowrap leading-tight">추억 상점</span>
+                    </button>
+                    <button data-nav="album" type="button" class="nav-tab flex flex-col items-center justify-center gap-0.5 py-2 px-1 rounded-xl transition-all text-zinc-300 hover:text-white hover:bg-white/5">
+                        <span class="text-base leading-none">📸</span>
+                        <span class="text-[11px] sm:text-xs font-medium whitespace-nowrap leading-tight">앨범 <span id="navAlbumCount" class="text-[10px] opacity-85">0/0</span></span>
+                    </button>
+                    <button data-nav="ranking" type="button" class="nav-tab flex flex-col items-center justify-center gap-0.5 py-2 px-1 rounded-xl transition-all text-zinc-300 hover:text-white hover:bg-white/5">
+                        <span class="text-base leading-none">🏆</span>
+                        <span class="text-[11px] sm:text-xs font-medium whitespace-nowrap leading-tight">순위표</span>
+                    </button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- 메인 콘텐츠 영역 (모바일 하단 여유 공간 충분히 확보) -->
+        <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 pt-5 pb-[120px]">
+
+            <!-- ============================================================= -->
+            <!-- VIEW 1: HSK 1~9급 퀴즈 설정 & 진행                            -->
+            <!-- ============================================================= -->
+            <section id="viewQuiz" class="space-y-6">
+
+                <!-- 1-A. 퀴즈 챕터 설정 화면 -->
+                <div id="quizSetupPanel" class="glass-panel rounded-3xl p-5 sm:p-8 space-y-6 animate-fade-up">
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-white/10 pb-5">
+                        <div>
+                            <p class="text-xs font-medium text-amber-400 tracking-wider uppercase mb-1">
+                                린젠칭의 게임처럼 · 한 단계씩 색채를 찾아서
+                            </p>
+                            <h2 class="font-serif text-xl sm:text-2xl font-bold text-white">
+                                HSK 1~9급 간체 중국어 퀴즈
+                            </h2>
+                            <p class="text-xs sm:text-sm text-zinc-400 mt-1">
+                                모든 문제는 <strong class="text-zinc-200">간체자(简体字)</strong>로 출제되며, 난이도 <span class="text-emerald-300">하(+100P)</span> → <span class="text-amber-300">중(+300P)</span> → <span class="text-rose-300">상(+500P)</span> 순서로 진행됩니다.
+                            </p>
+                        </div>
+                        <div class="text-xs text-zinc-300 bg-white/5 px-3 py-2 rounded-xl border border-white/10 shrink-0 self-start sm:self-auto">
+                            유도리 유사정답 채점 <span class="text-amber-300 font-semibold">AI ON</span>
+                        </div>
+                    </div>
+
+                    <!-- HSK 1~9급 레벨 선택 그리드 -->
+                    <div>
+                        <label class="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-3">
+                            1. HSK 급수 선택 (1급 ~ 9급)
+                        </label>
+                        <div id="levelGrid" class="grid grid-cols-3 sm:grid-cols-9 gap-2"></div>
+                        <p id="levelDescText" class="mt-2.5 text-xs text-amber-200/85 font-serif"></p>
+                    </div>
+
+                    <!-- 챕터 문제 수 선택 (5 / 10 / 20) & AI 확장 옵션 -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-3">
+                                2. 챕터 문제 수 선택
+                            </label>
+                            <div class="grid grid-cols-3 gap-2.5">
+                                <button data-count="5" type="button" class="count-btn py-3 rounded-2xl border border-white/15 bg-white/5 hover:bg-white/10 text-sm font-semibold text-zinc-300 transition-all">
+                                    5문제
+                                    <span class="block text-[10px] font-normal text-zinc-400 mt-0.5">하2·중2·상1</span>
+                                </button>
+                                <button data-count="10" type="button" class="count-btn py-3 rounded-2xl border border-amber-400 bg-amber-500/20 text-sm font-bold text-amber-200 transition-all shadow">
+                                    10문제
+                                    <span class="block text-[10px] font-normal text-amber-200/80 mt-0.5">하4·중3·상3</span>
+                                </button>
+                                <button data-count="20" type="button" class="count-btn py-3 rounded-2xl border border-white/15 bg-white/5 hover:bg-white/10 text-sm font-semibold text-zinc-300 transition-all">
+                                    20문제
+                                    <span class="block text-[10px] font-normal text-zinc-400 mt-0.5">하7·중7·상6</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-3">
+                                3. 단어장 중복 방지 &amp; AI 확장
+                            </label>
+                            <div class="glass-card rounded-2xl p-3.5 flex items-center justify-between gap-3">
+                                <div class="text-xs text-zinc-300 leading-relaxed">
+                                    <p class="font-semibold text-white">새로운 HSK 단어 자동 보충 (Gemini)</p>
+                                    <p class="text-[11px] text-zinc-400 mt-0.5">이미 푼 단어를 피해 새 단어를 불러옵니다.</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                                    <input id="aiExpandToggle" type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-600"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4가지 문제 유형 안내 -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-zinc-300">
+                        <div class="px-3 py-2 rounded-xl bg-white/5 border border-white/10">① 간체 → 한글 뜻</div>
+                        <div class="px-3 py-2 rounded-xl bg-white/5 border border-white/10">② 문장 빈칸 채우기</div>
+                        <div class="px-3 py-2 rounded-xl bg-white/5 border border-white/10">③ 병음 → 한글 뜻</div>
+                        <div class="px-3 py-2 rounded-xl bg-white/5 border border-white/10">④ 병음 → 간체 적기</div>
+                    </div>
+
+                    <!-- 시작 버튼 -->
+                    <button
+                        id="startQuizBtn"
+                        type="button"
+                        class="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-700 via-rose-600 to-amber-600 hover:from-rose-600 hover:to-amber-500 text-white font-bold text-base sm:text-lg shadow-[0_8px_28px_rgba(225,29,72,0.35)] transition-all active:scale-[0.99] flex items-center justify-center gap-2"
+                    >
+                        <span>🎬</span>
+                        <span id="startQuizBtnLabel">HSK 1급 · 10문제 챕터 시작하기</span>
+                    </button>
+                </div>
+
+                <!-- 1-B. 퀴즈 로딩 상태 -->
+                <div id="quizLoadingPanel" class="hidden glass-panel rounded-3xl p-10 text-center space-y-4">
+                    <div class="w-12 h-12 mx-auto rounded-full border-2 border-rose-500/30 border-t-amber-400 animate-spin"></div>
+                    <h3 class="font-serif text-lg font-semibold text-white">
+                        베이징행 열차에 새 단어들을 싣고 있습니다...
+                    </h3>
+                    <p class="text-xs sm:text-sm text-zinc-400">
+                        중복 없는 HSK 간체 단어와 예문을 준비하고 있어요. 잠시만 기다려 주세요.
+                    </p>
+                </div>
+
+                <!-- 1-C. 퀴즈 진행 화면 -->
+                <div id="quizActivePanel" class="hidden glass-panel rounded-3xl p-5 sm:p-8 space-y-6 animate-fade-up">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span id="qLevelBadge" class="px-2.5 py-1 rounded-lg bg-white/10 text-xs font-bold text-white">HSK 1급</span>
+                            <span id="qDiffBadge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">난이도 하 · +100P</span>
+                            <span id="qTypeBadge" class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs text-zinc-300">유형 1</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span id="qCounterText" class="text-sm font-bold text-amber-300">1 / 10</span>
+                            <button id="quitQuizBtn" type="button" class="text-xs text-zinc-400 hover:text-white px-2.5 py-1 rounded-lg hover:bg-white/10 transition-colors">
+                                중단
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
+                        <div id="qProgressBar" class="h-full bg-gradient-to-r from-rose-500 to-amber-400 transition-all duration-300" style="width: 10%;"></div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-6 sm:p-8 text-center space-y-4">
+                        <p id="qInstruction" class="text-xs sm:text-sm text-amber-300/90 font-medium tracking-wide"></p>
+                        <div id="qMainDisplay" class="font-sc text-3xl sm:text-5xl font-bold text-white tracking-wider py-2 break-keep leading-snug"></div>
+                        <p id="qHintDisplay" class="hidden text-sm sm:text-base text-zinc-300 bg-white/5 inline-block px-4 py-2 rounded-xl border border-white/10"></p>
+                        <div class="pt-1 flex justify-center">
+                            <button id="qSpeakBtn" type="button" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-xs text-zinc-200 transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                                </svg>
+                                <span>발음 듣기</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="qInputArea" class="space-y-3">
+                        <div class="flex flex-col sm:flex-row gap-2.5">
+                            <input
+                                id="qAnswerInput"
+                                type="text"
+                                autocomplete="off"
+                                placeholder="정답을 입력하세요..."
+                                class="flex-1 px-5 py-3.5 rounded-2xl bg-black/60 border border-white/20 text-white placeholder-zinc-400 text-base sm:text-lg focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all"
+                            >
+                            <button
+                                id="qSubmitBtn"
+                                type="button"
+                                class="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 disabled:opacity-50 text-white font-bold text-sm sm:text-base transition-all active:scale-[0.98] shrink-0"
+                            >
+                                제출하기
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-zinc-400 px-1">
+                            <span>Enter 키로 바로 제출</span>
+                            <button id="qSkipBtn" type="button" class="hover:text-zinc-200 underline underline-offset-4">
+                                모르겠어요 (정답 보기)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="qFeedbackArea" class="hidden rounded-2xl p-5 border space-y-3 animate-fade-up">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span id="qFeedbackIcon" class="text-xl">✨</span>
+                                <h4 id="qFeedbackTitle" class="font-bold text-base sm:text-lg text-white"></h4>
+                            </div>
+                            <span id="qFeedbackPoints" class="px-3 py-1 rounded-full text-xs font-bold"></span>
+                        </div>
+                        <p id="qFeedbackMsg" class="text-sm text-zinc-200 leading-relaxed"></p>
+                        <div class="p-3.5 rounded-xl bg-black/45 border border-white/10 text-xs sm:text-sm space-y-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span id="qReviewWord" class="font-sc font-bold text-lg text-amber-300"></span>
+                                <span id="qReviewPinyin" class="text-zinc-300"></span>
+                                <span class="text-zinc-500">|</span>
+                                <span id="qReviewMeaning" class="text-white font-medium"></span>
+                            </div>
+                            <p id="qReviewExample" class="font-sc text-zinc-300 pt-1"></p>
+                            <p id="qReviewExampleKo" class="text-zinc-400 text-xs"></p>
+                        </div>
+                        <button
+                            id="qNextBtn"
+                            type="button"
+                            class="w-full py-3.5 rounded-xl bg-white text-zinc-950 hover:bg-amber-100 font-bold text-sm sm:text-base transition-all active:scale-[0.99]"
+                        >
+                            다음 문제로 →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 1-D. 챕터 결과 요약 화면 -->
+                <div id="quizResultPanel" class="hidden glass-panel rounded-3xl p-6 sm:p-10 text-center space-y-6 animate-fade-up">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs font-semibold">
+                        <span>🎬</span>
+                        <span id="resLevelLabel">HSK 1급 챕터 완료</span>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h2 id="resHeadline" class="font-serif text-2xl sm:text-3xl font-bold text-white"></h2>
+                        <p id="resMovieQuote" class="text-xs sm:text-sm text-zinc-300 font-serif italic"></p>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2.5 max-w-lg mx-auto">
+                        <div class="glass-card rounded-2xl p-3.5">
+                            <p class="text-[11px] text-zinc-400">맞춘 개수</p>
+                            <p id="resCorrectCount" class="text-lg sm:text-2xl font-bold text-white mt-1">0 / 10</p>
+                        </div>
+                        <div class="glass-card rounded-2xl p-3.5">
+                            <p class="text-[11px] text-zinc-400">정확도</p>
+                            <p id="resAccuracy" class="text-lg sm:text-2xl font-bold text-emerald-300 mt-1">0%</p>
+                        </div>
+                        <div class="glass-card rounded-2xl p-3.5">
+                            <p class="text-[11px] text-zinc-400">획득 포인트</p>
+                            <p id="resEarnedPoints" class="text-lg sm:text-2xl font-bold text-amber-300 mt-1">+0 P</p>
+                        </div>
+                    </div>
+
+                    <div id="resDiffBreakdown" class="text-xs text-zinc-300 bg-white/5 inline-flex flex-wrap justify-center gap-3 px-4 py-2.5 rounded-xl border border-white/10"></div>
+
+                    <p class="text-xs text-amber-200/85">
+                        ✨ 이번 기록이 HSK <span id="resRankLevelNum">1</span>급 전체 순위표에 실시간 반영되었습니다!
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-2.5 justify-center pt-2">
+                        <button id="resRetryBtn" type="button" class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-bold text-sm sm:text-base transition-all">
+                            다시 도전하기
+                        </button>
+                        <button id="resGoRankingBtn" type="button" class="px-6 py-3.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 text-white font-semibold text-sm sm:text-base transition-all">
+                            🏆 전체 순위표 확인
+                        </button>
+                        <button id="resGoShopBtn" type="button" class="px-6 py-3.5 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/35 text-amber-200 font-semibold text-sm sm:text-base transition-all">
+                            🎞️ 추억 상점
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================================================= -->
+            <!-- VIEW 2: 추억 상점 (¥50 랜덤 원본 포토카드 뽑기)                -->
+            <!-- ============================================================= -->
+            <section id="viewShop" class="hidden space-y-6 animate-fade-up">
+                <div class="glass-panel rounded-3xl p-5 sm:p-8">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
+                        <div>
+                            <p class="text-xs text-amber-400 uppercase tracking-widest mb-1">Memory Film Shop · 추억 필름 상점</p>
+                            <h2 class="font-serif text-xl sm:text-2xl font-bold text-white">
+                                《后来的我们》 랜덤 포토카드 뽑기
+                            </h2>
+                            <p class="text-xs sm:text-sm text-zinc-400 mt-1">
+                                칭호 해금 보상(<strong class="text-amber-300">¥100</strong>) 중 <strong class="text-amber-300">¥50</strong>으로 관리자가 등록한 원본 추억 사진을 현상해 보세요.
+                            </p>
+                        </div>
+                        <div class="px-4 py-2.5 rounded-2xl bg-black/50 border border-amber-400/30 text-right self-start sm:self-auto">
+                            <span class="block text-[10px] text-zinc-400">현재 보유 위안</span>
+                            <span class="text-lg font-bold text-amber-300">¥ <span id="shopYuanDisplay">0</span></span>
+                        </div>
+                    </div>
+
+                    <!-- 등록된 사진이 없을 때 안내 -->
+                    <div id="shopNoPhotoNotice" class="hidden py-14 text-center space-y-3">
+                        <div class="text-4xl">🎞️</div>
+                        <h3 class="font-serif text-lg font-bold text-white">관리자가 아직 추억 사진을 등록하지 않았습니다</h3>
+                        <p class="text-xs sm:text-sm text-zinc-400">관리자 전용 모드에서 원본 사진이 등록되면 이곳에서 랜덤으로 뽑을 수 있습니다.</p>
+                    </div>
+
+                    <!-- 가챠 스테이지 -->
+                    <div id="shopGachaStage" class="py-7 flex flex-col items-center justify-center space-y-6">
+                        <div class="perspective-1000 w-72 sm:w-80 h-[380px]">
+                            <div id="gachaCardInner" class="card-3d-inner">
+                                <!-- 앞면 (흑백 봉인 필름) -->
+                                <div class="card-face rounded-3xl border border-white/20 bg-gradient-to-b from-zinc-900 via-zinc-950 to-black p-6 flex flex-col items-center justify-between shadow-2xl">
+                                    <div class="w-full flex justify-between items-center text-[10px] text-zinc-500 tracking-widest">
+                                        <span>FILM ARCHIVE</span>
+                                        <span id="shopPoolCountBadge">총 0장 수록</span>
+                                    </div>
+                                    <div class="text-center space-y-3">
+                                        <div class="w-20 h-20 mx-auto rounded-full bg-white/5 border border-white/15 flex items-center justify-center text-3xl shadow-inner">
+                                            🎞️
+                                        </div>
+                                        <p class="font-sc text-2xl font-bold text-zinc-200 tracking-widest">后来的我们</p>
+                                        <p class="font-serif text-xs text-zinc-400 leading-relaxed px-2">
+                                            "흑백의 기억 속에 잠든<br>우리의 찬란했던 원본 한 장면"
+                                        </p>
+                                    </div>
+                                    <div class="w-full text-center">
+                                        <span class="inline-block px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] text-zinc-400">
+                                            1회 현상 비용 · ¥50 위안
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- 뒷면 (뽑힌 원본 포토카드) -->
+                                <div class="card-face card-face-back rounded-3xl border-2 border-amber-400/75 bg-zinc-950 overflow-hidden flex flex-col shadow-[0_0_45px_rgba(245,158,11,0.35)]">
+                                    <div class="relative flex-1 bg-black overflow-hidden flex items-center justify-center">
+                                        <img id="gachaResultImg" src="" alt="추억 사진" class="w-full h-full object-cover">
+                                        <span id="gachaBadge" class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-600 text-white shadow z-10">
+                                            NEW!
+                                        </span>
+                                    </div>
+                                    <div class="p-4 bg-gradient-to-t from-black via-zinc-950 to-zinc-900/95 space-y-1">
+                                        <p id="gachaResultNum" class="text-[10px] text-amber-400 tracking-widest uppercase">MEMORY</p>
+                                        <h3 id="gachaResultTitle" class="font-serif text-sm font-bold text-white leading-snug truncate"></h3>
+                                        <p id="gachaResultSub" class="text-[11px] text-zinc-400 truncate"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="w-full max-w-sm space-y-2.5 text-center">
+                            <button
+                                id="drawCardBtn"
+                                type="button"
+                                class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-rose-700 via-rose-600 to-amber-600 hover:from-rose-600 hover:to-amber-500 disabled:opacity-45 disabled:cursor-not-allowed text-white font-bold text-base shadow-[0_8px_28px_rgba(245,158,11,0.28)] transition-all active:scale-[0.98]"
+                            >
+                                🎞️ 추억 포토카드 뽑기 (¥50 위안)
+                            </button>
+                            <p class="text-xs text-zinc-400">
+                                중복 사진 획득 시 <span class="text-amber-300 font-semibold">¥15 위안</span>이 자동 환급됩니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================================================= -->
+            <!-- VIEW 3: 추억 앨범 (원본 사진 감상 전용 · 업로드 기능 없음)     -->
+            <!-- ============================================================= -->
+            <section id="viewAlbum" class="hidden space-y-5 animate-fade-up">
+                <div class="glass-panel rounded-3xl p-5 sm:p-8 space-y-5">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+                        <div>
+                            <p class="text-xs text-rose-400 uppercase tracking-widest mb-1">Us and Them · Original Collection</p>
+                            <h2 class="font-serif text-xl sm:text-2xl font-bold text-white">
+                                우리의 추억 앨범 <span id="albumProgressText" class="text-amber-300 text-lg ml-1">(0 / 0)</span>
+                            </h2>
+                            <p class="text-xs text-zinc-400 mt-1">
+                                수집한 원본 사진을 터치하면 전체 화면 라이트박스로 선명하게 감상할 수 있습니다.
+                            </p>
+                        </div>
+                        <button id="albumToShopBtn" type="button" class="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/35 text-xs sm:text-sm font-semibold text-amber-200 transition-colors">
+                            상점에서 뽑기 →
+                        </button>
+                    </div>
+
+                    <div id="albumGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- JS로 동적 렌더링 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================================================= -->
+            <!-- VIEW 4: 전체 사용자 실시간 순위표 (전체 누적 + HSK 1~9급별)    -->
+            <!-- ============================================================= -->
+            <section id="viewRanking" class="hidden space-y-6 animate-fade-up">
+                <div class="glass-panel rounded-3xl p-5 sm:p-8 space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-white/10 pb-4">
+                        <div>
+                            <p class="text-xs text-amber-400 uppercase tracking-widest mb-1">Hall of Memories · 전체 사용자 명예의 전당</p>
+                            <h2 class="font-serif text-xl sm:text-2xl font-bold text-white">
+                                실시간 전체 순위표
+                            </h2>
+                            <p class="text-xs sm:text-sm text-zinc-400 mt-1">
+                                내 기록뿐만 아니라 모든 사용자의 누적 포인트와 HSK 1~9급별 최고 기록이 실시간으로 공유됩니다.
+                            </p>
+                        </div>
+                        <span class="text-[11px] px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 self-start sm:self-auto">
+                            ● 실시간 클라우드 동기화
+                        </span>
+                    </div>
+
+                    <!-- 전체 누적 + HSK 1~9급 탭 -->
+                    <div id="rankingLevelTabs" class="flex gap-1.5 overflow-x-auto pb-2"></div>
+                    <div id="rankingListContainer" class="space-y-2.5"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 3. 관리자 전용 대시보드 (비밀번호 0902033451519 인증 후 입장)          -->
+    <!-- ===================================================================== -->
+    <div id="adminDashboard" class="hidden relative z-20 min-h-screen flex flex-col">
+        <!-- 숨겨진 관리자 전용 파일 입력 -->
+        <input id="adminBgInput" type="file" accept="image/*" class="hidden">
+        <input id="adminAlbumUploadInput" type="file" multiple accept="image/*" class="hidden">
+
+        <header class="sticky top-0 z-30 bg-zinc-950/92 backdrop-blur-xl border-b border-amber-400/25">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-amber-300 font-bold">
+                        🔐
+                    </div>
+                    <div>
+                        <h1 class="font-serif text-base sm:text-lg font-bold text-white leading-tight">관리자 전용 대시보드</h1>
+                        <p id="adminSummaryText" class="text-[11px] text-zinc-400">회원 0명 · 등록된 원본 사진 0장</p>
+                    </div>
+                </div>
+                <button id="exitAdminBtn" type="button" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-xs sm:text-sm font-semibold text-white transition-colors">
+                    시작 화면으로 나가기
+                </button>
+            </div>
+            <!-- 관리자 2개 탭 -->
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 pb-3">
+                <div class="grid grid-cols-2 gap-2 bg-white/5 p-1 rounded-2xl border border-white/10">
+                    <button data-admin-tab="photos" type="button" class="admin-tab-btn py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow">
+                        📷 원본 사진 관리 (무제한)
+                    </button>
+                    <button data-admin-tab="users" type="button" class="admin-tab-btn py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium text-zinc-300 hover:text-white hover:bg-white/5">
+                        👥 사용자 &amp; 테스트 기록
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 pt-6 pb-[100px]">
+            <!-- 관리자 탭 1: 원본 사진 관리 -->
+            <section id="adminTabPhotos" class="space-y-6 animate-fade-up">
+                <!-- 1) 사이트 배경 사진 설정 -->
+                <div class="glass-panel rounded-3xl p-5 sm:p-6 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h2 class="font-serif text-base sm:text-lg font-bold text-white">1. 사이트 배경 원본 사진 설정</h2>
+                            <p class="text-xs text-zinc-400 mt-0.5">시작 화면과 앱 전체 배경으로 사용되는 원본 사진입니다.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="adminUploadBgBtn" type="button" class="px-4 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 text-xs sm:text-sm font-semibold transition-colors">
+                                📷 배경 사진 업로드
+                            </button>
+                            <button id="adminResetBgBtn" type="button" class="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-rose-950/60 border border-white/15 text-zinc-300 hover:text-rose-200 text-xs font-semibold transition-colors">
+                                기본 배경으로
+                            </button>
+                        </div>
+                    </div>
+                    <div id="adminBgPreviewWrap" class="rounded-2xl overflow-hidden border border-white/15 bg-black/50 h-44 sm:h-52 flex items-center justify-center">
+                        <span class="text-xs text-zinc-400">설정된 배경 사진이 없습니다 (기본 시네마틱 겨울밤 배경 사용 중)</span>
+                    </div>
+                </div>
+
+                <!-- 2) 앨범 / 포토카드 무제한 원본 업로드 -->
+                <div class="glass-panel rounded-3xl p-5 sm:p-6 space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+                        <div>
+                            <h2 class="font-serif text-base sm:text-lg font-bold text-white">
+                                2. 추억 앨범 원본 사진 관리 <span id="adminPhotoCountLabel" class="text-amber-300 ml-1">(0장)</span>
+                            </h2>
+                            <p class="text-xs text-zinc-400 mt-0.5">
+                                개수 제한 없이 원본 사진을 여러 장 한 번에 업로드할 수 있습니다. AI가 변형하지 않고 원본 비율 그대로 저장됩니다.
+                            </p>
+                        </div>
+                        <button id="adminUploadAlbumBtn" type="button" class="px-5 py-3 rounded-2xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white text-xs sm:text-sm font-bold shadow-lg transition-all active:scale-95 shrink-0">
+                            ➕ 원본 사진 추가 업로드 (다중 선택)
+                        </button>
+                    </div>
+
+                    <div id="adminUploadProgress" class="hidden p-3.5 rounded-xl bg-amber-500/15 border border-amber-400/35 text-xs text-amber-200 flex items-center gap-2.5">
+                        <div class="w-4 h-4 rounded-full border-2 border-amber-300/30 border-t-amber-300 animate-spin shrink-0"></div>
+                        <span id="adminUploadProgressText">사진을 안전하게 압축하여 업로드 중입니다...</span>
+                    </div>
+
+                    <div id="adminPhotoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- 업로드된 원본 사진 카드들 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 관리자 탭 2: 사용자 & 테스트 기록 관리 -->
+            <section id="adminTabUsers" class="hidden space-y-5 animate-fade-up">
+                <div class="glass-panel rounded-3xl p-5 sm:p-6 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+                        <div>
+                            <h2 class="font-serif text-base sm:text-lg font-bold text-white">전체 사용자 프로필 &amp; 테스트 기록</h2>
+                            <p class="text-xs text-zinc-400 mt-0.5">사용자를 클릭하면 해당 사용자의 HSK 상세 테스트 기록을 모두 확인할 수 있습니다.</p>
+                        </div>
+                        <input
+                            id="adminUserSearchInput"
+                            type="text"
+                            placeholder="닉네임 또는 본인확인문자 검색..."
+                            class="px-4 py-2 rounded-xl bg-black/50 border border-white/15 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400 sm:w-64"
+                        >
+                    </div>
+
+                    <div id="adminUsersList" class="space-y-3">
+                        <!-- 사용자 카드 목록 -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 모달 A: 관리자 비밀번호 입력 모달 (숫자만 허용: 0902033451519)         -->
+    <!-- ===================================================================== -->
+    <div id="adminAuthModal" class="hidden fixed inset-0 z-50 bg-black/82 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel rounded-3xl max-w-sm w-full p-6 space-y-5 animate-fade-up border-amber-400/35">
+            <div class="flex items-center justify-between">
+                <h3 class="font-serif text-lg font-bold text-white">🔐 관리자 인증</h3>
+                <button id="closeAdminAuthModalBtn" type="button" class="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10">✕</button>
+            </div>
+            <p class="text-xs text-zinc-400 leading-relaxed">
+                관리자 전용 비밀번호(공백 없는 숫자만)를 입력해주세요.
+            </p>
+            <div class="space-y-2">
+                <input
+                    id="adminPasswordInput"
+                    type="password"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    autocomplete="off"
+                    placeholder="숫자 비밀번호 입력"
+                    class="w-full px-4 py-3.5 rounded-2xl bg-black/65 border border-white/20 text-white text-center tracking-[0.2em] text-base focus:outline-none focus:border-amber-400"
+                >
+                <p id="adminAuthError" class="hidden text-xs text-rose-400 text-center"></p>
+            </div>
+            <button id="submitAdminAuthBtn" type="button" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-bold text-sm transition-all">
+                관리자 대시보드 입장
+            </button>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 모달 B: 관리자용 사용자 상세 테스트 기록 모달                          -->
+    <!-- ===================================================================== -->
+    <div id="adminUserDetailModal" class="hidden fixed inset-0 z-50 bg-black/82 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel rounded-3xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-fade-up">
+            <div class="px-5 sm:px-6 py-4 border-b border-white/10 flex items-center justify-between gap-2">
+                <div>
+                    <h3 id="adminDetailUserName" class="font-serif text-lg font-bold text-white">사용자 상세 기록</h3>
+                    <p id="adminDetailUserMeta" class="text-xs text-zinc-400 mt-0.5"></p>
+                </div>
+                <button id="closeAdminDetailBtn" type="button" class="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10">✕</button>
+            </div>
+            <div id="adminDetailRecordsList" class="p-5 overflow-y-auto space-y-2.5">
+                <!-- 테스트 기록 목록 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 모달 C: 공용 확인(Confirm) 모달 (alert/confirm 절대 미사용)            -->
+    <!-- ===================================================================== -->
+    <div id="customConfirmModal" class="hidden fixed inset-0 z-50 bg-black/82 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel rounded-3xl max-w-sm w-full p-6 text-center space-y-5 animate-fade-up">
+            <h3 id="confirmModalTitle" class="font-serif text-lg font-bold text-white">확인</h3>
+            <p id="confirmModalDesc" class="text-xs sm:text-sm text-zinc-300 leading-relaxed"></p>
+            <div class="grid grid-cols-2 gap-2.5">
+                <button id="confirmCancelBtn" type="button" class="py-3 rounded-xl bg-white/10 hover:bg-white/15 text-zinc-200 text-sm font-semibold">취소</button>
+                <button id="confirmOkBtn" type="button" class="py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-sm font-bold">삭제</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 모달 D: 칭호 해금 & ¥100 위안 지급 축하 모달                           -->
+    <!-- ===================================================================== -->
+    <div id="titleUnlockModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel rounded-3xl max-w-md w-full p-7 text-center space-y-5 border-amber-400/50 shadow-[0_0_60px_rgba(245,158,11,0.3)] animate-fade-up">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-rose-600 to-amber-500 flex items-center justify-center text-3xl shadow-lg">
+                🧣
+            </div>
+            <div class="space-y-1.5">
+                <p class="text-xs font-bold uppercase tracking-[0.2em] text-amber-400">NEW TITLE UNLOCKED!</p>
+                <h3 id="unlockTitleName" class="font-serif text-2xl font-bold text-white"></h3>
+                <p id="unlockTitleDesc" class="text-xs sm:text-sm text-zinc-300 pt-1"></p>
+            </div>
+            <div class="py-3.5 px-4 rounded-2xl bg-amber-500/15 border border-amber-400/40 text-amber-200 font-bold text-base">
+                🎁 보상 지급: <span id="unlockYuanReward" class="text-amber-300 text-lg">+¥100 위안</span>
+            </div>
+            <button id="closeUnlockModalBtn" type="button" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-bold text-sm sm:text-base transition-all">
+                감사히 받기 (새 칭호 장착)
+            </button>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 모달 E: 보유 칭호 관리 모달                                            -->
+    <!-- ===================================================================== -->
+    <div id="titleListModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-panel rounded-3xl max-w-lg w-full max-h-[82vh] flex flex-col overflow-hidden animate-fade-up">
+            <div class="px-6 py-4 border-b border-white/10 flex items-center justify-between">
+                <h3 class="font-serif text-lg font-bold text-white">《后来的我们》 칭호 보관함</h3>
+                <button id="closeTitleListModalBtn" type="button" class="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10">✕</button>
+            </div>
+            <div class="p-5 sm:p-6 overflow-y-auto space-y-2.5">
+                <p class="text-xs text-zinc-400 mb-2">5,000P를 채울 때마다 새로운 칭호가 해금되고 ¥100 위안이 지급됩니다.</p>
+                <div id="titleListContainer" class="space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 모달 F: 추억 앨범 전체 화면 라이트박스 감상 모달 (원본 그대로)         -->
+    <!-- ===================================================================== -->
+    <div id="lightboxModal" class="hidden fixed inset-0 z-50 bg-black/92 backdrop-blur-lg flex items-center justify-center p-4">
+        <div class="glass-panel rounded-3xl max-w-2xl w-full overflow-hidden animate-fade-up">
+            <div class="relative bg-black max-h-[65vh] flex items-center justify-center overflow-hidden">
+                <img id="lightboxImg" src="" alt="원본 추억 사진" class="max-h-[65vh] w-auto max-w-full object-contain">
+                <button id="closeLightboxBtn" type="button" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/70 hover:bg-black/90 text-white flex items-center justify-center border border-white/20 z-10">✕</button>
+            </div>
+            <div class="p-5 sm:p-6 space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                    <span id="lightboxSceneTag" class="text-xs font-bold text-amber-400 tracking-widest">MEMORY</span>
+                    <span id="lightboxCountTag" class="text-xs text-zinc-400">보유 1장</span>
+                </div>
+                <h3 id="lightboxTitle" class="font-serif text-lg sm:text-xl font-bold text-white"></h3>
+                <p id="lightboxDesc" class="text-xs sm:text-sm text-zinc-300 leading-relaxed"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 커스텀 토스트 알림 -->
+    <div id="toast" class="fixed bottom-24 sm:bottom-8 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl bg-zinc-900/95 border border-amber-400/45 text-white text-xs sm:text-sm font-medium shadow-2xl opacity-0 pointer-events-none transition-all duration-300 max-w-[90vw] text-center">
+        <span id="toastMsg">알림</span>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- Firebase v11 + 핵심 앱 로직 (ES Module)                                -->
+    <!-- ===================================================================== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import {
+            getFirestore,
+            doc,
+            setDoc,
+            updateDoc,
+            deleteDoc,
+            addDoc,
+            onSnapshot,
+            collection
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // =========================================================================
+        // 1. 영화 상수 및 설정값
+        // =========================================================================
+        const ADMIN_PASSWORD = "0902033451519";
+
+        const SPLASH_QUOTES = [
+            "이언이 켈리를 끝내 찾지 못하면, 세상은 온통 무채색이 되어버려.",
+            "내가 널 놓치지 않았다면, 나중에 우리는 달라졌을까?",
+            "그 시절 우리는 모든 걸 가졌어. 다만 '우리'가 없었을 뿐이지.",
+            "인연을 끝까지 이어가지 못하더라도, 서로를 실망시키지 않는 것만으로도 충분하다.",
+            "만약에 우리가 베이징으로 떠나지 않았다면, 훗날 우리는 다 가졌겠지. 하지만 '우리'는 없었을 거야.",
+            "I miss you"
+        ];
+
+        const TITLES = [
+            { req: 0,     name: "귀향 열차 대기자",           desc: "2007년 춘운 기차표 한 장을 손에 쥔 시작의 단계" },
+            { req: 5000,  name: "2007년 춘운 열차의 인연",    desc: "분실된 기차표가 이어준 첫 만남의 설렘" },
+            { req: 10000, name: "베이징 지하실의 낭만가",     desc: "좁고 추운 방에서도 꿈을 잃지 않던 그 시절" },
+            { req: 15000, name: "버려진 소파의 주인",         desc: "밤거리를 함께 옮겨온 낡은 소파 위의 행복" },
+            { req: 20000, name: "섣달그믐 만두 빚는 사람",    desc: "아버지의 정성처럼 차곡차곡 쌓아 올린 실력" },
+            { req: 25000, name: "지하철 문 너머의 외침",      desc: "놓치지 않기 위해 끝까지 달려가는 간절함" },
+            { req: 30000, name: "이언을 찾는 켈리",           desc: "무채색 세상에 다시 색채를 불어넣는 탐험가" },
+            { req: 35000, name: "흑백에 색채를 입힌 자",      desc: "과거와 현재를 아우르는 깊은 중국어 감각" },
+            { req: 40000, name: "후회 없는 훗날의 우리",      desc: "서로를 실망시키지 않는 빛나는 경지" },
+            { req: 45000, name: "베이징의 영원한 붉은 목도리", desc: "《后来的我们》의 모든 기억을 완성한 마스터" }
+        ];
+
+        const LEVEL_DESCRIPTIONS = {
+            1: "HSK 1급 · 2007년 춘운 기차표처럼 가장 기초가 되는 필수 생존 단어들",
+            2: "HSK 2급 · 베이징 지하실에서 소소한 일상을 나누기 시작하는 기초 회화",
+            3: "HSK 3급 · 린젠칭과 팡샤오샤오가 꿈을 이야기하던 탄탄한 초중급 어휘",
+            4: "HSK 4급 · 서로의 감정과 고민을 솔직하게 주고받는 중급 필수 표현",
+            5: "HSK 5급 · 영화 속 명대사처럼 뉘앙스와 감정이 깊어지는 중상급 어휘",
+            6: "HSK 6급 · 어른이 되어 다시 마주한 두 사람처럼 성숙하고 정교한 고급 어휘",
+            7: "HSK 7급 · 신HSK 고급 진입! 문어체와 폭넓은 사회·문화 어휘 정복",
+            8: "HSK 8급 · 원어민 수준의 섬세한 감정선과 사자성어·고급 동사 활용",
+            9: "HSK 9급 · 최상위 마스터 등급! 흑백의 세상에 완벽한 색채를 입히는 경지"
+        };
+
+        const DIFF_POINTS = { easy: 100, medium: 300, hard: 500 };
+
+        // =========================================================================
+        // 2. HSK 1~9급 간체 내장 단어장 (총 216개 + Gemini API 동적 확장)
+        // =========================================================================
+        const HSK_BANK = {
+            1: {
+                easy: [
+                    ["你好", "nǐ hǎo", "안녕하세요", ["안녕", "안녕하세요"], "你好，很高兴认识你。", "안녕하세요, 만나서 반갑습니다."],
+                    ["谢谢", "xièxie", "감사합니다", ["고마워", "고맙습니다", "감사해"], "谢谢你帮我拿行李。", "짐 들어줘서 고마워요."],
+                    ["再见", "zàijiàn", "안녕히 가세요", ["잘가", "또 봐", "바이바이", "안녕"], "如果分手，我们就再见吧。", "헤어지게 되면 우리 이제 안녕이야."],
+                    ["朋友", "péngyou", "친구", ["벗"], "他是我最好的朋友。", "그는 나의 가장 친한 친구입니다."],
+                    ["今天", "jīntiān", "오늘", ["금일"], "今天北京下雪了。", "오늘 베이징에 눈이 내렸어요."],
+                    ["喜欢", "xǐhuan", "좋아하다", ["좋아해", "마음에 들다"], "我很喜欢你的红围巾。", "난 네 붉은 목도리가 정말 좋아."],
+                    ["回家", "huí jiā", "집에 가다", ["귀가하다", "집으로 돌아가다"], "过年的时候我们一起回家。", "설날에 우리 같이 집에 가자."],
+                    ["妈妈", "māma", "엄마", ["어머니"], "妈妈做的饺子最好吃。", "엄마가 만든 만두가 제일 맛있어."]
+                ],
+                medium: [
+                    ["火车站", "huǒchēzhàn", "기차역", ["역", "철도역"], "我们在火车站认识的。", "우리는 기차역에서 알게 되었어."],
+                    ["天气", "tiānqì", "날씨", ["기후"], "北京冬天的天气很冷。", "베이징 겨울 날씨는 아주 추워요."],
+                    ["高兴", "gāoxìng", "기쁘다", ["즐겁다", "신나다", "기뻐하다"], "见到你我非常高兴。", "너를 만나서 정말 기뻐."],
+                    ["明天", "míngtiān", "내일", ["명일"], "明天我们去北京吧。", "내일 우리 베이징에 가자."],
+                    ["电脑", "diànnǎo", "컴퓨터", ["피씨", "PC"], "他每天用电脑写游戏。", "그는 매일 컴퓨터로 게임을 만들어요."],
+                    ["电影", "diànyǐng", "영화", ["무비"], "这部电影让我哭了。", "이 영화는 나를 울게 만들었어."],
+                    ["吃饭", "chī fàn", "밥을 먹다", ["식사하다", "밥먹다"], "别忙了，先吃饭吧。", "바빠도 먼저 밥부터 먹자."],
+                    ["时候", "shíhou", "때", ["시간", "시절"], "那个时候我们很快乐。", "그 시절 우리는 아주 행복했어."]
+                ],
+                hard: [
+                    ["认识", "rènshi", "알다", ["알게 되다", "인식하다", "면식이 있다"], "2007年我认识了你。", "2007년에 나는 너를 알게 되었어."],
+                    ["工作", "gōngzuò", "일하다", ["일", "직장", "근무하다"], "他在北京找了一份工作。", "그는 베이징에서 일자리를 하나 구했어."],
+                    ["睡觉", "shuì jiào", "자다", ["잠자다", "취침하다"], "太晚了，快睡觉吧。", "너무 늦었어, 어서 자자."],
+                    ["漂亮", "piàoliang", "예쁘다", ["아름답다", "멋지다"], "下雪的夜晚真漂亮。", "눈 내리는 밤은 정말 예쁘다."],
+                    ["前面", "qiánmiàn", "앞쪽", ["앞", "정면"], "火车站就在前面。", "기차역이 바로 앞쪽에 있어요."],
+                    ["学习", "xuéxí", "공부하다", ["배우다", "학습하다"], "我每天都在学习中文。", "나는 매일 중국어를 공부하고 있어."],
+                    ["打电话", "dǎ diànhuà", "전화하다", ["전화를 걸다"], "到了北京给我打电话。", "베이징에 도착하면 나한테 전화해."],
+                    ["不客气", "bú kèqi", "천만에요", ["별말씀을요", "괜찮아요"], "不客气，这是我应该做的。", "천만에요, 제가 당연히 해야 할 일인걸요."]
+                ]
+            },
+            2: {
+                easy: [
+                    ["但是", "dànshì", "하지만", ["그러나", "근데", "그렇지만", "허나"], "我们什么都有了，但是没有了我们。", "우리는 모든 걸 가졌지만, 우리가 없어졌어."],
+                    ["因为", "yīnwèi", "왜냐하면", ["~때문에", "때문이다"], "因为有你，我不怕冷。", "네가 있기 때문에 나는 춥지 않아."],
+                    ["所以", "suǒyǐ", "그래서", ["그러므로", "따라서"], "下大雪了，所以火车停了。", "폭설이 내려서 기차가 멈췄어."],
+                    ["一起", "yìqǐ", "함께", ["같이"], "我们一起去北京闯一闯。", "우리 함께 베이징에 가서 부딪혀 보자."],
+                    ["希望", "xīwàng", "희망하다", ["바라다", "희망", "원하다"], "我希望你永远幸福。", "네가 영원히 행복하기를 바라."],
+                    ["觉得", "juéde", "느끼다", ["생각하다", "~인 것 같다"], "我觉得这里很温暖。", "나는 이곳이 아주 따뜻하다고 느껴."],
+                    ["帮助", "bāngzhù", "돕다", ["도움", "도와주다"], "谢谢你一直帮助我。", "항상 나를 도와줘서 고마워."],
+                    ["准备", "zhǔnbèi", "준비하다", ["준비"], "我准备好出发了。", "나는 출발할 준비가 되었어."]
+                ],
+                medium: [
+                    ["已经", "yǐjīng", "이미", ["벌써"], "十年的时间已经过去了。", "10년의 시간이 이미 흘러갔어."],
+                    ["可能", "kěnéng", "아마", ["가능하다", "어쩌면", "~일 수도 있다"], "以后可能不会再见面了。", "앞으로는 아마 다시 만나지 못할 거야."],
+                    ["告诉", "gàosu", "알려주다", ["말해주다", "전하다"], "我想告诉你我的真心。", "너에게 내 진심을 말해주고 싶어."],
+                    ["问题", "wèntí", "문제", ["질문"], "只要在一起，就没有问题。", "함께 있기만 하면 아무 문제 없어."],
+                    ["快乐", "kuàilè", "즐겁다", ["행복하다", "기쁘다"], "祝你新年快乐！", "새해 복 많이 받아!"],
+                    ["时间", "shíjiān", "시간", ["세월"], "时间过得太快了。", "시간이 너무 빨리 지나가."],
+                    ["意思", "yìsi", "뜻", ["의미", "재미"], "你说的这句话是什么意思？", "네가 한 이 말은 무슨 뜻이야?"],
+                    ["虽然", "suīrán", "비록 ~이지만", ["비록", "~일지라도"], "虽然房间很小，但很温馨。", "방은 비록 아주 작지만 따뜻해."]
+                ],
+                hard: [
+                    ["介绍", "jièshào", "소개하다", ["소개"], "请介绍一下你的家乡。", "당신의 고향을 소개해 주세요."],
+                    ["便宜", "piányi", "싸다", ["저렴하다"], "地下室的房租比较便宜。", "지하실 월세가 비교적 저렴해."],
+                    ["离", "lí", "떨어지다", ["~로부터", "거리가 있다"], "地铁站离我家很近。", "지하철역이 우리 집에서 아주 가까워."],
+                    ["正在", "zhèngzài", "~하는 중이다", ["막 ~하고 있다", "지금 ~중이다"], "外面正在下着大雪。", "밖에는 지금 큰 눈이 내리고 있어."],
+                    ["找", "zhǎo", "찾다", ["구하다"], "如果伊恩找不到凯莉怎么办？", "만약 이언이 켈리를 찾지 못하면 어떡해?"],
+                    ["懂", "dǒng", "이해하다", ["알다", "알아듣다"], "后来我才懂了你的心。", "나중에서야 난 네 마음을 이해했어."],
+                    ["笑", "xiào", "웃다", ["미소 짓다"], "你笑起来真好看。", "넌 웃을 때 정말 예뻐."],
+                    ["等", "děng", "기다리다", ["대기하다"], "我在地铁口等你。", "나 지하철 입구에서 너 기다릴게."]
+                ]
+            },
+            3: {
+                easy: [
+                    ["后来", "hòulái", "나중에", ["훗날", "그 후", "이후에"], "后来，我们什么都有了。", "훗날, 우리는 모든 걸 가졌어."],
+                    ["如果", "rúguǒ", "만약", ["만일", "~라면"], "如果当时你没走，会怎样？", "만약 그때 네가 떠나지 않았다면 어땠을까?"],
+                    ["决定", "juédìng", "결정하다", ["결정", "결심하다"], "我决定留在北京。", "나는 베이징에 남기로 결정했어."],
+                    ["忘记", "wàngjì", "잊다", ["잊어버리다", "까먹다"], "我永远不会忘记那一年。", "나는 그 해를 영원히 잊지 못할 거야."],
+                    ["照顾", "zhàogu", "돌보다", ["보살피다", "챙기다"], "你要好好照顾自己。", "너 스스로를 잘 돌봐야 해."],
+                    ["害怕", "hàipà", "두려워하다", ["무섭다", "겁나다"], "我最害怕失去你。", "나는 너를 잃는 게 가장 두려워."],
+                    ["相信", "xiāngxìn", "믿다", ["신뢰하다"], "我相信你会成功的。", "나는 네가 성공할 거라고 믿어."],
+                    ["发现", "fāxiàn", "발견하다", ["알아차리다", "깨닫다"], "我发现世界变成了黑白。", "나는 세상이 흑백으로 변한 것을 발견했어."]
+                ],
+                medium: [
+                    ["终于", "zhōngyú", "마침내", ["드디어", "결국"], "游戏终于做成功了。", "게임이 드디어 성공적으로 완성되었어."],
+                    ["一直", "yìzhí", "계속", ["줄곧", "내내"], "我一直都在想着你。", "나는 줄곧 너를 생각하고 있었어."],
+                    ["突然", "tūrán", "갑자기", ["문득", "돌연히"], "火车突然停了下来。", "기차가 갑자기 멈춰 섰어."],
+                    ["变化", "biànhuà", "변화", ["변화하다", "바뀌다"], "这十年我们的变化真大。", "이 10년 동안 우리의 변화는 정말 크네."],
+                    ["关心", "guānxīn", "관심을 갖다", ["걱정하다", "신경 쓰다"], "爸爸一直很关心你。", "아버지는 늘 너를 아주 걱정하셨어."],
+                    ["选择", "xuǎnzé", "선택하다", ["선택", "고르다"], "这是我们自己的选择。", "이건 우리 스스로의 선택이야."],
+                    ["世界", "shìjiè", "세계", ["세상"], "没有色彩的世界太冷清了。", "색채가 없는 세상은 너무 쓸쓸해."],
+                    ["清楚", "qīngchu", "분명하다", ["뚜렷하다", "명확하다"], "我记不清楚那天的话了。", "그날의 말이 뚜렷하게 기억나지 않아."]
+                ],
+                hard: [
+                    ["其实", "qíshí", "사실은", ["실은", "사실"], "其实我一直想对你说对不起。", "사실 나는 줄곧 너에게 미안하다고 말하고 싶었어."],
+                    ["习惯", "xíguàn", "습관", ["익숙하다", "익숙해지다"], "我已经习惯了一个人生活。", "나는 이미 혼자 사는 것에 익숙해졌어."],
+                    ["满意", "mǎnyì", "만족하다", ["만족스럽다"], "他对现在的生活很满意。", "그는 지금의 생활에 아주 만족해."],
+                    ["经过", "jīngguò", "지나가다", ["거치다", "경과"], "经过那条老街，我想起了你。", "그 옛 거리를 지나가다 네가 떠올랐어."],
+                    ["影响", "yǐngxiǎng", "영향", ["영향을 미치다"], "你的离开影响了我很久。", "너의 떠남은 오랫동안 나에게 영향을 미쳤어."],
+                    ["认真", "rènzhēn", "진지하다", ["성실하다", "열심히"], "他在认真地写代码。", "그는 진지하게 코드를 짜고 있어."],
+                    ["见面", "jiànmiàn", "만나다", ["대면하다"], "十年后他们在飞机上见面了。", "10년 후 그들은 비행기에서 만났어."],
+                    ["结束", "jiéshù", "끝나다", ["마치다", "종료하다"], "我们的故事就这样结束了。", "우리의 이야기는 이렇게 끝이 났어."]
+                ]
+            },
+            4: {
+                easy: [
+                    ["遗憾", "yíhàn", "유감", ["후회", "아쉬움", "아쉽다"], "我最大的遗憾，是你的遗憾与我有关。", "나의 가장 큰 후회는 너의 후회가 나와 관련되어 있다는 거야."],
+                    ["幸福", "xìngfú", "행복하다", ["행복"], "看见你幸福，我就放心了。", "네가 행복한 모습을 보니 마음이 놓여."],
+                    ["错过", "cuòguò", "놓치다", ["지나치다", "기회를 놓치다"], "如果当时没错过你该多好。", "그때 너를 놓치지 않았다면 얼마나 좋았을까."],
+                    ["坚持", "jiānchí", "견지하다", ["버티다", "꾸준히 하다", "고집하다"], "只要坚持，梦想就会实现。", "꾸준히 버티기만 하면 꿈은 이루어질 거야."],
+                    ["放弃", "fàngqì", "포기하다", ["단념하다"], "那时候我差点放弃了。", "그때 나는 하마터면 포기할 뻔했어."],
+                    ["回忆", "huíyì", "추억", ["회상하다", "기억"], "那些回忆一直留在我心里。", "그 추억들은 계속 내 마음속에 남아 있어."],
+                    ["勇敢", "yǒnggǎn", "용감하다", ["당당하다"], "你曾经比我勇敢得多。", "넌 예전에 나보다 훨씬 더 용감했어."],
+                    ["感觉", "gǎnjué", "느낌", ["느끼다", "감각"], "我感觉到你就在身边。", "네가 바로 곁에 있는 것 같은 느낌이 들어."]
+                ],
+                medium: [
+                    ["失望", "shīwàng", "실망하다", ["실망"], "缘分这事，能不负对方就好，别让人失望。", "인연이란 서로를 실망시키지 않는 것만으로도 충분해."],
+                    ["原来", "yuánlái", "원래", ["알고 보니", "사실은"], "原来我很快乐，只是不愿承认。", "알고 보니 난 참 행복했어, 단지 인정하기 싫었을 뿐이지."],
+                    ["永远", "yǒngyuǎn", "영원히", ["영원"], "你答应过要永远爱我。", "넌 영원히 나를 사랑하겠다고 약속했잖아."],
+                    ["联系", "liánxì", "연락하다", ["연락", "연계"], "分开以后我们再也没联系过。", "헤어진 이후로 우리는 다시는 연락하지 않았어."],
+                    ["鼓励", "gǔlì", "격려하다", ["응원하다", "격려"], "感谢你在我最难的时候鼓励我。", "내가 가장 힘들 때 나를 격려해 줘서 고마워."],
+                    ["后悔", "hòuhuǐ", "후회하다", ["후회"], "当年没上那趟地铁，我很后悔。", "그해 그 지하철에 타지 않은 걸 난 정말 후회해."],
+                    ["温暖", "wēnnuǎn", "따뜻하다", ["온화하다", "따스하다"], "那碗热饺子让我感到很温暖。", "그 따뜻한 만두 한 그릇이 나를 포근하게 해줬어."],
+                    ["证明", "zhèngmíng", "증명하다", ["증명"], "我想向你证明我能成功。", "나는 너에게 내가 성공할 수 있다는 걸 증명하고 싶었어."]
+                ],
+                hard: [
+                    ["竟然", "jìngrán", "뜻밖에도", ["의외로", "설마", "도리어"], "十年后我们竟然在同一架飞机上。", "10년 후 우리가 뜻밖에도 같은 비행기에 탔어."],
+                    ["既然", "jìrán", "기왕 ~한 바에는", ["이왕", "~인 이상"], "既然分开了，就各自安好吧。", "이왕 헤어졌으니 각자 잘 지내자."],
+                    ["即使", "jíshǐ", "설령 ~하더라도", ["비록 ~일지라도", "설사"], "即使重来一次，我还是会爱你。", "설령 다시 돌아간다 해도 난 여전히 너를 사랑할 거야."],
+                    ["顺便", "shùnbiàn", "가는 김에", ["하는 김에", "편리한 김에"], "你回家的时候顺便买点菜吧。", "집에 가는 김에 반찬 좀 사 와."],
+                    ["仔细", "zǐxì", "자세히", ["꼼꼼하다", "세심하다"], "她仔细地读着爸爸的信。", "그녀는 아버지의 편지를 꼼꼼히 읽었어."],
+                    ["值得", "zhíde", "가치가 있다", ["~할 만하다"], "为了梦想努力，一切都值得。", "꿈을 위해 노력하는 건 모든 게 가치 있어."],
+                    ["耐心", "nàixīn", "인내심", ["끈기", "참을성"], "学中文需要很多耐心。", "중국어를 배우려면 많은 인내심이 필요해."],
+                    ["羡慕", "xiànmù", "부러워하다", ["선망하다"], "我很羡慕那些有房子的人。", "나는 집이 있는 사람들이 아주 부러웠어."]
+                ]
+            },
+            5: {
+                easy: [
+                    ["缘分", "yuánfèn", "인연", ["연분"], "缘分这事，能不负对方就好。", "인연이란 건 서로에게 부끄럽지 않으면 그만이야."],
+                    ["思念", "sīniàn", "그리워하다", ["그리움", "사모하다"], "我对你的思念从未停止。", "너를 향한 나의 그리움은 멈춘 적이 없어."],
+                    ["珍惜", "zhēnxī", "소중히 여기다", ["아끼다"], "我们那时不懂得珍惜眼前人。", "우리는 그때 눈앞의 사람을 소중히 여길 줄 몰랐어."],
+                    ["陪伴", "péibàn", "함께하다", ["곁을 지키다", "동반하다"], "谢谢你陪伴我度过最穷的日子。", "가장 가난했던 시절 내 곁을 지켜줘서 고마워."],
+                    ["温柔", "wēnróu", "부드럽다", ["온화하다", "다정하다"], "她的笑容总是那么温柔。", "그녀의 미소는 언제나 그렇게 다정했어."],
+                    ["彼此", "bǐcǐ", "서로", ["피차"], "我们都成为了彼此生命里的光。", "우리는 서로의 인생에서 빛이 되어주었어."],
+                    ["沉默", "chénmò", "침묵하다", ["침묵", "말이 없다"], "车厢里陷入了长久的沉默。", "객실 안은 긴 침묵에 빠져들었어."],
+                    ["成熟", "chéngshú", "성숙하다", ["익다", "어른스럽다"], "失去之后，我们才变得成熟。", "잃고 난 뒤에야 우리는 성숙해졌어."]
+                ],
+                medium: [
+                    ["承认", "chéngrèn", "인정하다", ["시인하다"], "只是不愿承认我曾经很快乐。", "단지 예전에 내가 참 행복했다는 걸 인정하기 싫었을 뿐이야."],
+                    ["奢侈", "shēchǐ", "사치스럽다", ["사치"], "我连伤感都是奢侈的。", "나는 슬퍼하는 것마저도 사치인 걸."],
+                    ["逃避", "táobì", "도피하다", ["회피하다", "피하다"], "我不敢面对，只能选择逃避。", "나는 마주할 용기가 없어 그저 도피를 택했어."],
+                    ["委屈", "wěiqu", "억울하다", ["서럽다", "서운하다"], "跟着我住地下室，你受委屈了。", "나를 따라 지하실에 살면서 네가 고생이 많았어."],
+                    ["告别", "gàobié", "작별하다", ["이별하다", "작별 인사"], "我们甚至没有好好告别。", "우리는 제대로 된 작별 인사조차 하지 못했어."],
+                    ["寂寞", "jìmò", "외롭다", ["쓸쓸하다", "적막하다"], "大城市的夜晚总是让人感到寂寞。", "대도시의 밤은 늘 사람을 외롭게 만들어."],
+                    ["梦想", "mèngxiǎng", "꿈", ["이상", "꿈꾸다"], "为了梦想，他拼命熬夜工作。", "꿈을 위해 그는 밤을 새워 필사적으로 일했어."],
+                    ["色彩", "sècǎi", "색채", ["색깔", "빛깔"], "如果没有你，世界就没有了色彩。", "네가 없다면 세상에는 색채가 사라져 버려."]
+                ],
+                hard: [
+                    ["难免", "nánmiǎn", "면하기 어렵다", ["어쩔 수 없다", "불가피하다"], "年轻的时候难免会犯错。", "젊을 때는 실수하는 것을 면하기 어렵지."],
+                    ["何必", "hébì", "하필", ["굳이 ~할 필요가 있나", "어찌"], "何必误会故事没说完。", "굳이 이야기가 다 끝나지 않았다고 오해할 필요 있을까."],
+                    ["仿佛", "fǎngfú", "마치 ~같다", ["흡사", "마치"], "一切仿佛就发生在昨天。", "모든 것이 마치 어제 일어난 일만 같아."],
+                    ["依然", "yīrán", "여전히", ["변함없이"], "多年以后，他依然记得她的喜好。", "수년이 지난 뒤에도 그는 여전히 그녀의 취향을 기억해."],
+                    ["体会", "tǐhuì", "체득하다", ["느끼다", "이해하다", "깨닫다"], "长大后我才体会到父亲的爱。", "어른이 되어서야 아버지의 사랑을 깨달았어."],
+                    ["追求", "zhuīqiú", "추구하다", ["쫓다", "구애하다"], "他一直在追求事业上的成功。", "그는 줄곧 사업의 성공을 추구해 왔어."],
+                    ["矛盾", "máodùn", "모순", ["갈등", "모순되다"], "生活压力让他们产生了矛盾。", "생활의 압박이 그들 사이에 갈등을 만들어 냈어."],
+                    ["诚实", "chéngshí", "정직하다", ["솔직하다"], "请对我诚实一点。", "나에게 조금만 더 솔직해져 줘."]
+                ]
+            },
+            6: {
+                easy: [
+                    ["目送", "mùsòng", "눈으로 배웅하다", ["바라보며 보내다", "배웅하다"], "连泪也不能流，只能目送。", "눈물조차 흘릴 수 없고, 그저 눈으로 배웅할 뿐이야."],
+                    ["终究", "zhōngjiū", "결국", ["마침내", "끝내"], "但终究你都不能陪我到远方。", "하지만 결국 넌 먼 곳까지 나와 함께 가줄 수 없잖아."],
+                    ["辜负", "gūfù", "저버리다", ["실망시키다", "배반하다"], "能不负对方就好，不要辜负青春。", "서로를 저버리지 않으면 그만이야, 청춘을 헛되이 하지 마."],
+                    ["沧桑", "cāngsāng", "세월의 풍파", ["상전벽해", "변천"], "十年不见，他眼中多了几分沧桑。", "10년 만에 보니 그의 눈빛에 세월의 풍파가 묻어났어."],
+                    ["执着", "zhízhuó", "집착하다", ["고집스럽다", "한결같다"], "他对做游戏这件事非常执着。", "그는 게임을 만드는 일에 아주 집요하게 매달렸어."],
+                    ["依赖", "yīlài", "의지하다", ["의존하다"], "我曾经那么依赖你的存在。", "나는 예전에 너의 존재에 그토록 의지했었어."],
+                    ["茫然", "mángrán", "망연하다", ["막막하다", "멍하다"], "站在北京街头，我感到一阵茫然。", "베이징 거리에 서서 나는 문득 막막함을 느꼈어."],
+                    ["纯粹", "chúncuì", "순수하다", ["순전하다"], "那时候的爱情是多么纯粹。", "그 시절의 사랑은 얼마나 순수했던가."]
+                ],
+                medium: [
+                    ["恍惚", "huǎnghū", "어렴풋하다", ["멍하다", "흐릿하다"], "看着雪景，他一时有些恍惚。", "설경을 바라보며 그는 잠시 어렴풋한 기분에 빠졌어."],
+                    ["克制", "kèzhì", "억제하다", ["자제하다", "참다"], "成年人的爱总是充满了克制。", "어른들의 사랑은 늘 절제로 가득 차 있어."],
+                    ["狼狈", "lángbèi", "낭패스럽다", ["초라하다", "비참하다"], "在最狼狈的年纪遇见了最想照顾的人。", "가장 초라한 나이에 가장 지켜주고 싶은 사람을 만났어."],
+                    ["妥协", "tuǒxié", "타협하다", ["양보하다"], "面对现实，他们最终还是妥协了。", "현실 앞에서 그들은 결국 타협하고 말았어."],
+                    ["弥补", "míbǔ", "메우다", ["보충하다", "만회하다"], "有些遗憾是永远无法弥补的。", "어떤 후회는 영원히 만회할 수 없는 법이야."],
+                    ["释怀", "shìhuái", "마음을 놓다", ["후련해지다", "털어내다"], "聊完那一夜，他们终于彻底释怀了。", "그날 밤 이야기를 나눈 뒤 그들은 마침내 완전히 털어냈어."],
+                    ["憧憬", "chōngjǐng", "동경하다", ["기대하다", "그리다"], "他们曾一起憧憬过未来的家。", "그들은 예전에 함께 미래의 집을 그려보곤 했어."],
+                    ["刻骨铭心", "kègǔ-míngxīn", "뼈에 사무치다", ["잊을 수 없다", "가슴에 새기다"], "那段感情让他刻骨铭心。", "그 사랑은 그의 뼈에 사무치도록 깊이 남았어."]
+                ],
+                hard: [
+                    ["筋疲力尽", "jīnpí-lìjìn", "녹초가 되다", ["기진맥진하다", "지치다"], "加班到深夜，他已经筋疲力尽了。", "심야까지 야근하느라 그는 이미 녹초가 되어버렸어."],
+                    ["无能为力", "wúnéng-wéilì", "어찌할 도리가 없다", ["무력하다", "힘이 없다"], "看着你离开，我却无能为力。", "네가 떠나는 걸 보면서도 나는 어찌할 도리가 없었어."],
+                    ["画蛇添足", "huàshé-tiānzú", "사족을 달다", ["쓸데없는 짓을 하다"], "故事已经结束，再解释就是画蛇添足。", "이야기는 이미 끝났어, 더 해명하는 건 사족일 뿐이야."],
+                    ["潜移默化", "qiányí-mòhuà", "서서히 영향을 받다", ["은연중에 감화되다"], "多年的相处让他们潜移默化地变像了。", "오랜 시간 함께하며 그들은 은연중에 서로 닮아갔어."],
+                    ["不由自主", "bùyóu-zìzhǔ", "자기도 모르게", ["무심코", "저절로"], "听到那首歌，眼泪不由自主地流了下来。", "그 노래를 듣자 눈물이 저절로 흘러내렸어."],
+                    ["截然不同", "jiérán-bùtóng", "판이하게 다르다", ["완전히 다르다"], "十年后的生活与当年截然不同。", "10년 후의 삶은 그 시절과 완전히 달라졌어."],
+                    ["一如既往", "yìrú-jìwǎng", "변함없이", ["예전과 다름없이"], "父亲的信一如既往地温暖人心。", "아버지의 편지는 예전과 다름없이 마음을 따뜻하게 했어."],
+                    ["历历在目", "lìlì-zàimù", "눈앞에 선하다", ["생생하게 떠오르다"], "当年过年的情景至今历历在目。", "그해 설날의 풍경이 지금까지도 눈앞에 생생해."]
+                ]
+            },
+            7: {
+                easy: [
+                    ["漂泊", "piāobó", "떠돌다", ["방랑하다", "타향살이하다"], "年轻时在北京漂泊的日子很难忘。", "젊은 시절 베이징에서 떠돌던 날들은 잊기 어려워."],
+                    ["眷恋", "juànliàn", "그리워하다", ["연연하다", "애착을 갖다"], "他对那段逝去的时光充满眷恋。", "그는 지나가 버린 그 시절에 깊은 애착을 품고 있어."],
+                    ["哽咽", "gěngyè", "목이 메다", ["흐느끼다"], "读完信，她忍不住哽咽了起来。", "편지를 다 읽고 그녀는 참지 못하고 목이 메었어."],
+                    ["伫立", "zhùlì", "우두커니 서다", ["서 있다"], "他在雪地里伫立了很久。", "그는 눈밭 위에 오랫동안 우두커니 서 있었어."],
+                    ["苍白", "cāngbái", "창백하다", ["힘이 없다", "공허하다"], "所有的借口在事实面前都显得苍白。", "모든 변명은 사실 앞에서 그저 공허해 보일 뿐이야."],
+                    ["奔波", "bēnbō", "동분서주하다", ["바쁘게 뛰어다니다"], "为了生计，他在大城市四处奔波。", "생계를 위해 그는 대도시 이곳저곳을 바쁘게 뛰어다녔어."],
+                    ["唏嘘", "xīxū", "탄식하다", ["안타까워하다", "한숨짓다"], "两人的结局令观众唏嘘不已。", "두 사람의 결말은 관객들을 안타깝게 탄식하게 했어."],
+                    ["褪色", "tuìshǎi", "빛이 바래다", ["색이 바래다", "바래다"], "记忆不会因为时间而褪色。", "기억은 시간이 흐른다고 빛이 바래지 않아."]
+                ],
+                medium: [
+                    ["羁绊", "jībàn", "속박", ["인연의 끈", "얽매임"], "他们之间有着割舍不断的羁绊。", "그들 사이에는 끊어낼 수 없는 깊은 인연의 끈이 있어."],
+                    ["怅然", "chàngrán", "서글프다", ["허전하다", "아쉽다"], "送别之后，他心里感到一阵怅然。", "배웅한 뒤 그의 마음속에는 문득 허전함이 밀려왔어."],
+                    ["执念", "zhíniàn", "집념", ["미련", "집착"], "放下执念，才能迎接新的生活。", "미련을 내려놓아야 새로운 삶을 맞이할 수 있어."],
+                    ["喧嚣", "xuānxiāo", "소란스럽다", ["시끌벅적하다", "번잡함"], "远离城市的喧嚣，内心变得平静。", "도시의 소란스러움에서 벗어나니 마음이 평온해졌어."],
+                    ["蹉跎", "cuōtuó", "허송세월하다", ["세월을 헛되이 보내다"], "不要在犹豫中蹉跎了最好的年华。", "망설이다가 가장 좋은 청춘을 헛되이 보내지 마."],
+                    ["慰藉", "wèijiè", "위로", ["위안", "위로하다"], "彼此的陪伴是寒冷冬夜唯一的慰藉。", "서로의 동행은 추운 겨울밤 유일한 위안이었어."],
+                    ["颠沛流离", "diānpèi-liúlí", "정처 없이 떠돌다", ["유랑하다"], "即便颠沛流离，有你在身边就安心。", "비록 정처 없이 떠돌더라도 네가 곁에 있으면 안심이 됐어."],
+                    ["如梦初醒", "rúmèng-chūxǐng", "꿈에서 막 깨어난 듯하다", ["비로소 깨닫다"], "直到她离开，他才如梦初醒。", "그녀가 떠나고 나서야 그는 비로소 꿈에서 깬 듯 정신을 차렸어."]
+                ],
+                hard: [
+                    ["物是人非", "wùshì-rénfēi", "풍경은 그대로인데 사람은 변했다", ["세월이 변하다"], "重回北京老街，早已物是人非。", "베이징 옛 거리에 다시 돌아오니 이미 모든 사람이 변해 있었어."],
+                    ["阴差阳错", "yīnchā-yángcuò", "공교롭게 엇갈리다", ["우연히 어긋나다"], "两人总是阴差阳错地错过彼此。", "두 사람은 늘 공교롭게 엇갈리며 서로를 놓쳤어."],
+                    ["情非得已", "qíngfēi-děiyǐ", "어쩔 수 없다", ["부득이하다"], "当初的离开也是情非得已。", "그때의 떠남 역시 어쩔 수 없는 선택이었어."],
+                    ["相濡以沫", "xiāngrú-yǐmò", "어려울 때 서로 돕다", ["고난을 함께 나누다"], "他们曾在地下室里相濡以沫。", "그들은 한때 지하실에서 어려운 시절을 서로 의지하며 버텼어."],
+                    ["若即若离", "ruòjí-ruòlí", "가까운 듯 멀다", ["닿을 듯 말 듯하다"], "那种若即若离的距离最让人心痛。", "닿을 듯 말 듯한 그 거리가 사람을 가장 아프게 해."],
+                    ["黯然神伤", "ànrán-shénshāng", "침울하게 슬퍼하다", ["마음이 몹시 상하다"], "想起往事，他不禁黯然神伤。", "지난 일을 떠올리며 그는 저도 모르게 침울해졌어."],
+                    ["不负韶华", "búfù-sháohuá", "청춘을 헛되이 하지 않다", ["젊음을 빛내다"], "愿我们都能不负韶华，勇敢前行。", "우리 모두 청춘을 헛되이 하지 않고 용감히 나아가길 바라."],
+                    ["曲终人散", "qǔzhōng-rénsàn", "노래가 끝나고 사람들이 흩어지다", ["잔치가 끝나다", "이별하다"], "再热闹的聚会终有曲终人散之时。", "아무리 시끌벅적한 모임도 결국 끝이 나고 흩어질 때가 오지."]
+                ]
+            },
+            8: {
+                easy: [
+                    ["斑驳", "bānbó", "얼룩덜룩하다", ["빛바래다", "아롱지다"], "墙上斑驳的痕迹记录着过去。", "벽 위의 얼룩덜룩한 흔적이 과거를 기록하고 있어."],
+                    ["凛冽", "lǐnliè", "매섭게 춥다", ["쌀쌀하다", "혹독하다"], "北京冬夜的寒风格外凛冽。", "베이징 겨울밤의 찬 바람은 유독 매섭게 추웠어."],
+                    ["炽热", "chìrè", "뜨겁다", ["열렬하다", "타오르다"], "那年冬天，我们的爱如此炽热。", "그해 겨울, 우리의 사랑은 이토록 뜨거웠어."],
+                    ["悸动", "jìdòng", "두근거리다", ["설레다", "가슴이 뛰다"], "重逢的那一刻，心底泛起一阵悸动。", "재회하던 그 순간, 마음속 깊은 곳에서 설렘이 일었어."],
+                    ["凛然", "lǐnrán", "의연하다", ["엄숙하다"], "面对生活的困境，她显得格外凛然。", "삶의 역경 앞에서도 그녀는 유독 의연해 보였어."],
+                    ["缄默", "jiānmò", "입을 다물다", ["침묵하다"], "千言万语最终化作一声缄默。", "수만 가지 말이 결국 한 번의 침묵으로 변했어."],
+                    ["荏苒", "rěnrǎn", "세월이 빠르다", ["덧없이 흐르다"], "时光荏苒，转眼已是十年。", "세월이 덧없이 흘러 눈 깜짝할 새 10년이 되었네."],
+                    ["翩跹", "piānxiān", "가볍게 춤추듯 날리다", ["하늘거리다"], "雪花在路灯下翩跹起舞。", "눈송이가 가로등 아래에서 가볍게 춤추듯 날렸어."]
+                ],
+                medium: [
+                    ["沧海桑田", "cānghǎi-sāngtián", "상전벽해", ["세상이 크게 변하다"], "十年光阴，已是沧海桑田。", "10년의 세월은 이미 상전벽해처럼 모든 걸 바꿔놓았어."],
+                    ["刻骨", "kègǔ", "뼈에 사무치다", ["깊이 새겨지다"], "这是一场让人刻骨的初恋。", "이것은 뼈에 사무칠 만큼 깊은 첫사랑이었어."],
+                    ["氤氲", "yīnyūn", "자욱하다", ["감돌다", "서리다"], "热气在寒冷的屋子里氤氲开来。", "따뜻한 김이 추운 방 안에 자욱하게 퍼져 나갔어."],
+                    ["寥落", "liáoluò", "쓸쓸하다", ["적막하다", "드물다"], "深夜的地铁站显得格外寥落。", "심야의 지하철역은 유난히 쓸쓸해 보였어."],
+                    ["惘然", "wǎngrán", "허망하다", ["멍하다", "실망스럽다"], "此情可待成追忆，只是当时已惘然。", "이 정은 추억으로 남을 수 있으나, 그때 이미 허망했어."],
+                    ["缱绻", "qiǎnquǎn", "애틋하다", ["다정하다", "정이 깊다"], "他们曾有过一段缱绻的时光。", "그들에게도 한때 더없이 애틋한 시간이 있었어."],
+                    ["唏嘘不已", "xīxū-bùyǐ", "탄식을 금치 못하다", ["몹시 안타까워하다"], "这份迟来的告白让人唏嘘不已。", "이 뒤늦은 고백은 사람들로 하여금 탄식을 금치 못하게 해."],
+                    ["百感交集", "bǎigǎn-jiāojí", "만감이 교차하다", ["온갖 감정이 뒤섞이다"], "翻开旧相册，他一时百感交集。", "옛 사진첩을 펼치자 그는 잠시 만감이 교차했어."]
+                ],
+                hard: [
+                    ["分道扬镳", "fēndào-yángbiāo", "각자의 길을 가다", ["갈라서다"], "因为理想不同，他们最终分道扬镳。", "이상이 달랐기에 그들은 결국 각자의 길을 가게 되었어."],
+                    ["破镜重圆", "pòjìng-chóngyuán", "깨진 거울이 다시 합쳐지다", ["재결합하다"], "不是所有的遗憾都能破镜重圆。", "모든 후회가 다 재결합으로 이어질 수는 없는 법이야."],
+                    ["藕断丝连", "ǒuduàn-sīlián", "미련이 남다", ["끊어질 듯 이어지다"], "既然决定放手，就别再藕断丝连。", "이미 놓아주기로 결심했다면 더 이상 미련을 두지 마."],
+                    ["魂牵梦绕", "húnqiān-mèngrào", "꿈에서도 잊지 못하다", ["몹시 그리워하다"], "那座北方小城一直让他魂牵梦绕。", "그 북쪽의 작은 도시는 늘 그가 꿈에서도 그리워하는 곳이야."],
+                    ["海誓山盟", "hǎishì-shānméng", "영원한 사랑의 맹세", ["굳은 약속"], "当年许下的海誓山盟终究败给了现实。", "그해 맺었던 영원한 맹세는 결국 현실 앞에 무너졌어."],
+                    ["萍水相逢", "píngshuǐ-xiāngféng", "우연히 만나다", ["뜻밖의 만남"], "从萍水相逢到相知相守，一切皆是缘。", "우연한 만남에서 서로를 알아가기까지 모든 것이 인연이야."],
+                    ["相见恨晚", "xiāngjiàn-hènwǎn", "늦게 만난 것을 한탄하다", ["진작 만났더라면"], "他们聊起梦想来大有相见恨晚之感。", "그들은 꿈을 이야기하며 진작 만나지 못한 걸 아쉬워했어."],
+                    ["沧海遗珠", "cānghǎi-yízhū", "숨겨진 보배", ["묻힌 인재"], "这部作品堪称华语爱情片中的沧海遗珠。", "이 작품은 중화권 로맨스 영화 중 숨겨진 보석이라 할 만해."]
+                ]
+            },
+            9: {
+                easy: [
+                    ["缄口", "jiānkǒu", "입을 다물다", ["말을 아끼다"], "关于那次争吵，两人都缄口不提。", "그날의 다툼에 대해 두 사람 모두 입을 다물었어."],
+                    ["凋零", "diāolíng", "시들다", ["쇠락하다", "떨어지다"], "深秋的树叶在寒风中渐渐凋零。", "늦가을 나뭇잎이 찬 바람 속에 서서히 시들어 떨어졌어."],
+                    ["倏忽", "shūhū", "순식간에", ["눈 깜짝할 사이에"], "十年光阴倏忽而过。", "10년의 세월이 순식간에 지나가 버렸어."],
+                    ["踟蹰", "chíchú", "머뭇거리다", ["주저하다"], "他在地铁门前踟蹰了一瞬，终究没迈出步子。", "그는 지하철 문 앞에서 한순간 머뭇거리다 끝내 발을 떼지 못했어."],
+                    ["寥廓", "liáokuò", "드넓고 쓸쓸하다", ["광활하다"], "北方冬天的天空显得格外寥廓。", "북쪽 겨울 하늘은 유난히 드넓고도 쓸쓸해 보였어."],
+                    ["旖旎", "yǐnǐ", "부드럽고 아름답다", ["우아하다"], "回忆里的风光总是那么旖旎。", "추억 속의 풍경은 언제나 그렇게 아름다웠어."],
+                    ["萧瑟", "xiāosè", "쓸쓸하다", ["스산하다"], "秋风萧瑟，吹散了往日的喧嚣。", "가을바람이 스산하게 불어 지난날의 소란을 흩어놓았어."],
+                    ["笃定", "dǔdìng", "확신하다", ["변함없다", "단단하다"], "她的眼神比十年前更加笃定。", "그녀의 눈빛은 10년 전보다 훨씬 더 단단해졌어."]
+                ],
+                medium: [
+                    ["白驹过隙", "báijū-guòxì", "세월이 화살처럼 빠르다", ["시간이 순식간에 흐르다"], "人生如白驹过隙，转眼已过半生。", "인생은 문틈으로 흰 망아지가 지나듯 순식간에 흘러가네."],
+                    ["南柯一梦", "nánkē-yímèng", "일장춘몽", ["헛된 꿈"], "回头看去，十年的繁华宛如南柯一梦。", "돌아보니 10년의 화려함은 마치 일장춘몽 같았어."],
+                    ["刻舟求剑", "kèzhōu-qiújiàn", "시대의 변화를 모르고 고집하다", ["융통성이 없다"], "人总要向前看，不能刻舟求剑。", "사람은 늘 앞을 봐야지, 과거에만 얽매여서는 안 돼."],
+                    ["弦外之音", "xiánwài-zhīyīn", "숨은 뜻", ["언외의 뜻"], "她立刻听懂了他话里的弦外之音。", "그녀는 그의 말 속에 담긴 숨은 뜻을 단번에 알아차렸어."],
+                    ["沧海一粟", "cānghǎi-yísù", "아주 미미한 존재", ["넓은 바다의 좁쌀 하나"], "在大城市里，我们渺小得像沧海一粟。", "대도시 속에서 우리는 넓은 바다의 좁쌀처럼 작기만 했어."],
+                    ["望尘莫及", "wàngchén-mòjí", "도저히 따라갈 수 없다", ["격차가 크다"], "他成功后的高度让人望尘莫及。", "그가 성공한 뒤의 높이는 남들이 감히 따라갈 수 없었어."],
+                    ["休戚与共", "xiūqī-yǔgòng", "기쁨과 슬픔을 함께하다", ["고락을 같이하다"], "曾经休戚与共的两个人最终还是走散了。", "한때 고락을 함께하던 두 사람은 결국 흩어지고 말았어."],
+                    ["风花雪月", "fēnghuā-xuěyuè", "낭만적인 사랑", ["풍류", "아름다운 풍경"], "柴米油盐终究磨平了当年的风花雪月。", "팍팍한 현실이 결국 그 시절의 낭만을 깎아내렸어."]
+                ],
+                hard: [
+                    ["咫尺天涯", "zhǐchǐ-tiānyá", "지척에 있으나 하늘 끝처럼 멀다", ["가까우면서도 멀다"], "同在一座城市，我们却已咫尺天涯。", "같은 도시에 있으면서도 우리는 이미 하늘 끝처럼 멀어졌어."],
+                    ["大彻大悟", "dàchè-dàwù", "크게 깨닫다", ["완전히 깨우치다"], "经历过失去，他才真正大彻大悟。", "상실을 겪고 나서야 그는 비로소 크게 깨달았어."],
+                    ["饮鸩止渴", "yǐnzhèn-zhǐkě", "당장의 어려움을 피하려 더 큰 화를 부르다", ["임시방편으로 화를 자초하다"], "用谎言维持感情无异于饮鸩止渴。", "거짓말로 감정을 유지하는 건 더 큰 화를 자초하는 것과 같아."],
+                    ["殚精竭虑", "dānjīng-jiélǜ", "온 심혈을 기울이다", ["혼신을 다하다"], "为了完成这款游戏，他殚精竭虑。", "이 게임을 완성하기 위해 그는 온 심혈을 기울였어."],
+                    ["萍踪浪迹", "píngzōng-làngjì", "정처 없이 떠도는 자취", ["유랑 생활"], "那些年萍踪浪迹，幸好有你相伴。", "정처 없이 떠돌던 그 시절, 다행히 네가 곁에 있었어."],
+                    ["戛然而止", "jiárán-érzhǐ", "갑자기 뚝 끊기다", ["돌연 멈추다"], "音乐戛然而止，画面定格在了黑白色。", "음악이 갑자기 뚝 멈추고 화면은 흑백으로 고정되었어."],
+                    ["潸然泪下", "shānrán-lèixià", "눈물을 뚝뚝 흘리다", ["하염없이 울다"], "看到父亲留下的信，她不禁潸然泪下。", "아버지가 남기신 편지를 보고 그녀는 하염없이 눈물을 흘렸어."],
+                    ["不胫而走", "bújìng-érzǒu", "발 없는 말이 천 리 가다", ["빠르게 퍼지다"], "关于这部电影的口碑很快不胫而走。", "이 영화에 대한 호평은 순식간에 사방으로 퍼져 나갔어."]
+                ]
+            }
+        };
+
+        // =========================================================================
+        // 3. Firebase 초기화 및 전역 상태
+        // =========================================================================
+        const appId = typeof __app_id !== "undefined" ? __app_id : "us-and-them-hsk-app";
+        const firebaseConfig = typeof __firebase_config !== "undefined" ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== "undefined" ? __initial_auth_token : null;
+
+        let db = null;
+        let auth = null;
+        let authUser = null;
+
+        // 실시간 동기화 데이터 (메모리 상태)
+        let allUsers = [];          // artifacts/{appId}/public/data/users
+        let allRankings = [];       // artifacts/{appId}/public/data/rankings
+        let allTestRecords = [];    // artifacts/{appId}/public/data/test_records
+        let albumPhotos = [];       // artifacts/{appId}/public/data/album_photos
+        let backgroundImageData = ""; // artifacts/{appId}/public/data/app_settings/background
+
+        // 현재 로그인한 사용자
+        let currentUser = null;
+        let pendingAuthNickname = "";
+        let pendingAuthExistingUser = null;
+
+        // 퀴즈 & UI 상태
+        let selectedRankingTab = "total"; // 'total' | 1..9
+        let selectedLevel = 1;
+        let selectedCount = 10;
+        let activeQuestions = [];
+        let currentQIndex = 0;
+        let sessionCorrect = 0;
+        let sessionPoints = 0;
+        let sessionDiffStats = { easy: { c: 0, t: 0 }, medium: { c: 0, t: 0 }, hard: { c: 0, t: 0 } };
+        let isWaitingNext = false;
+        let isGrading = false;
+        let isDrawingCard = false;
+        let confirmCallback = null;
+
+        // Gemini API 설정 (apiKey는 런타임 자동 주입)
+        const GEMINI_API_KEY = "";
+        const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}`;
+
+        // Firestore 경로 헬퍼 (RULE 1 엄격 준수)
+        const pubCol = (colName) => collection(db, "artifacts", appId, "public", "data", colName);
+        const pubDoc = (colName, docId) => doc(db, "artifacts", appId, "public", "data", colName, docId);
+
+        // =========================================================================
+        // 4. DOM 참조
+        // =========================================================================
+        const cinemaBg = document.getElementById("cinemaBg");
+        const splashScreen = document.getElementById("splashScreen");
+        const splashQuote = document.getElementById("splashQuote");
+        const dbStatusBadge = document.getElementById("dbStatusBadge");
+        const authStep1 = document.getElementById("authStep1");
+        const authStep2 = document.getElementById("authStep2");
+        const splashNicknameInput = document.getElementById("splashNicknameInput");
+        const authStep1Error = document.getElementById("authStep1Error");
+        const checkNicknameBtn = document.getElementById("checkNicknameBtn");
+        const selectedNicknameDisplay = document.getElementById("selectedNicknameDisplay");
+        const authStep2Banner = document.getElementById("authStep2Banner");
+        const verificationTextInput = document.getElementById("verificationTextInput");
+        const authStep2Error = document.getElementById("authStep2Error");
+        const completeAuthBtn = document.getElementById("completeAuthBtn");
+
+        const mainApp = document.getElementById("mainApp");
+        const headerNickname = document.getElementById("headerNickname");
+        const headerTitleText = document.getElementById("headerTitleText");
+        const headerProgressBar = document.getElementById("headerProgressBar");
+        const headerPointsLabel = document.getElementById("headerPointsLabel");
+        const headerNextTitleHint = document.getElementById("headerNextTitleHint");
+        const headerYuan = document.getElementById("headerYuan");
+        const navAlbumCount = document.getElementById("navAlbumCount");
+
+        const views = {
+            quiz: document.getElementById("viewQuiz"),
+            shop: document.getElementById("viewShop"),
+            album: document.getElementById("viewAlbum"),
+            ranking: document.getElementById("viewRanking")
+        };
+
+        const quizSetupPanel = document.getElementById("quizSetupPanel");
+        const quizLoadingPanel = document.getElementById("quizLoadingPanel");
+        const quizActivePanel = document.getElementById("quizActivePanel");
+        const quizResultPanel = document.getElementById("quizResultPanel");
+        const levelGrid = document.getElementById("levelGrid");
+        const levelDescText = document.getElementById("levelDescText");
+        const startQuizBtnLabel = document.getElementById("startQuizBtnLabel");
+        const aiExpandToggle = document.getElementById("aiExpandToggle");
+
+        const qLevelBadge = document.getElementById("qLevelBadge");
+        const qDiffBadge = document.getElementById("qDiffBadge");
+        const qTypeBadge = document.getElementById("qTypeBadge");
+        const qCounterText = document.getElementById("qCounterText");
+        const qProgressBar = document.getElementById("qProgressBar");
+        const qInstruction = document.getElementById("qInstruction");
+        const qMainDisplay = document.getElementById("qMainDisplay");
+        const qHintDisplay = document.getElementById("qHintDisplay");
+        const qInputArea = document.getElementById("qInputArea");
+        const qAnswerInput = document.getElementById("qAnswerInput");
+        const qSubmitBtn = document.getElementById("qSubmitBtn");
+        const qFeedbackArea = document.getElementById("qFeedbackArea");
+        const qFeedbackIcon = document.getElementById("qFeedbackIcon");
+        const qFeedbackTitle = document.getElementById("qFeedbackTitle");
+        const qFeedbackPoints = document.getElementById("qFeedbackPoints");
+        const qFeedbackMsg = document.getElementById("qFeedbackMsg");
+        const qReviewWord = document.getElementById("qReviewWord");
+        const qReviewPinyin = document.getElementById("qReviewPinyin");
+        const qReviewMeaning = document.getElementById("qReviewMeaning");
+        const qReviewExample = document.getElementById("qReviewExample");
+        const qReviewExampleKo = document.getElementById("qReviewExampleKo");
+        const qNextBtn = document.getElementById("qNextBtn");
+
+        const shopYuanDisplay = document.getElementById("shopYuanDisplay");
+        const shopNoPhotoNotice = document.getElementById("shopNoPhotoNotice");
+        const shopGachaStage = document.getElementById("shopGachaStage");
+        const shopPoolCountBadge = document.getElementById("shopPoolCountBadge");
+        const gachaCardInner = document.getElementById("gachaCardInner");
+        const gachaResultImg = document.getElementById("gachaResultImg");
+        const gachaBadge = document.getElementById("gachaBadge");
+        const gachaResultNum = document.getElementById("gachaResultNum");
+        const gachaResultTitle = document.getElementById("gachaResultTitle");
+        const gachaResultSub = document.getElementById("gachaResultSub");
+        const drawCardBtn = document.getElementById("drawCardBtn");
+
+        const albumGrid = document.getElementById("albumGrid");
+        const albumProgressText = document.getElementById("albumProgressText");
+        const rankingLevelTabs = document.getElementById("rankingLevelTabs");
+        const rankingListContainer = document.getElementById("rankingListContainer");
+
+        // 관리자 DOM
+        const adminDashboard = document.getElementById("adminDashboard");
+        const adminAuthModal = document.getElementById("adminAuthModal");
+        const adminPasswordInput = document.getElementById("adminPasswordInput");
+        const adminAuthError = document.getElementById("adminAuthError");
+        const adminSummaryText = document.getElementById("adminSummaryText");
+        const adminTabPhotos = document.getElementById("adminTabPhotos");
+        const adminTabUsers = document.getElementById("adminTabUsers");
+        const adminBgInput = document.getElementById("adminBgInput");
+        const adminAlbumUploadInput = document.getElementById("adminAlbumUploadInput");
+        const adminBgPreviewWrap = document.getElementById("adminBgPreviewWrap");
+        const adminPhotoCountLabel = document.getElementById("adminPhotoCountLabel");
+        const adminUploadProgress = document.getElementById("adminUploadProgress");
+        const adminUploadProgressText = document.getElementById("adminUploadProgressText");
+        const adminPhotoGrid = document.getElementById("adminPhotoGrid");
+        const adminUserSearchInput = document.getElementById("adminUserSearchInput");
+        const adminUsersList = document.getElementById("adminUsersList");
+        const adminUserDetailModal = document.getElementById("adminUserDetailModal");
+        const adminDetailUserName = document.getElementById("adminDetailUserName");
+        const adminDetailUserMeta = document.getElementById("adminDetailUserMeta");
+        const adminDetailRecordsList = document.getElementById("adminDetailRecordsList");
+
+        // 공용 모달 DOM
+        const customConfirmModal = document.getElementById("customConfirmModal");
+        const confirmModalTitle = document.getElementById("confirmModalTitle");
+        const confirmModalDesc = document.getElementById("confirmModalDesc");
+        const titleUnlockModal = document.getElementById("titleUnlockModal");
+        const unlockTitleName = document.getElementById("unlockTitleName");
+        const unlockTitleDesc = document.getElementById("unlockTitleDesc");
+        const unlockYuanReward = document.getElementById("unlockYuanReward");
+        const titleListModal = document.getElementById("titleListModal");
+        const titleListContainer = document.getElementById("titleListContainer");
+        const lightboxModal = document.getElementById("lightboxModal");
+        const lightboxImg = document.getElementById("lightboxImg");
+        const lightboxSceneTag = document.getElementById("lightboxSceneTag");
+        const lightboxCountTag = document.getElementById("lightboxCountTag");
+        const lightboxTitle = document.getElementById("lightboxTitle");
+        const lightboxDesc = document.getElementById("lightboxDesc");
+
+        const toastEl = document.getElementById("toast");
+        const toastMsg = document.getElementById("toastMsg");
+        let toastTimer = null;
+        let bloomTimer = null;
+
+        // =========================================================================
+        // 5. 유틸리티 함수
+        // =========================================================================
+        function escapeHtml(str) {
+            if (typeof str !== "string") return "";
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function showToast(msg) {
+            toastMsg.textContent = msg;
+            toastEl.classList.remove("opacity-0", "pointer-events-none");
+            toastEl.classList.add("opacity-100");
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toastEl.classList.remove("opacity-100");
+                toastEl.classList.add("opacity-0", "pointer-events-none");
+            }, 2600);
+        }
+
+        function triggerWarmBloom(duration = 2500) {
+            document.body.classList.add("warm-bloom");
+            if (bloomTimer) clearTimeout(bloomTimer);
+            bloomTimer = setTimeout(() => {
+                document.body.classList.remove("warm-bloom");
+            }, duration);
+        }
+
+        function formatDateTime(ts) {
+            if (!ts) return "-";
+            const d = new Date(ts);
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, "0");
+            const day = String(d.getDate()).padStart(2, "0");
+            const hh = String(d.getHours()).padStart(2, "0");
+            const mm = String(d.getMinutes()).padStart(2, "0");
+            return `${y}.${m}.${day} ${hh}:${mm}`;
+        }
+
+        function openConfirmModal(title, desc, onConfirm) {
+            confirmModalTitle.textContent = title;
+            confirmModalDesc.textContent = desc;
+            confirmCallback = onConfirm;
+            customConfirmModal.classList.remove("hidden");
+        }
+
+        function speakChinese(text) {
+            if (!("speechSynthesis" in window)) {
+                showToast("이 브라우저에서는 발음 듣기를 지원하지 않습니다.");
+                return;
+            }
+            try {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = "zh-CN";
+                u.rate = 0.92;
+                const voices = window.speechSynthesis.getVoices();
+                const zhVoice = voices.find(v => v.lang === "zh-CN" || v.lang === "zh_CN") || voices.find(v => v.lang.startsWith("zh"));
+                if (zhVoice) u.voice = zhVoice;
+                window.speechSynthesis.speak(u);
+            } catch (e) {}
+        }
+
+        /**
+         * 원본 사진 비율·내용을 100% 유지하면서 Firestore 1MB 제한 내로 안전하게 압축
+         */
+        function compressOriginalImageToDataUrl(file, maxDimension = 1280, maxBase64Length = 800000) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error("파일을 읽을 수 없습니다."));
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onerror = () => reject(new Error("올바른 이미지 파일이 아닙니다."));
+                    img.onload = () => {
+                        let { width, height } = img;
+                        if (width > maxDimension || height > maxDimension) {
+                            const ratio = Math.min(maxDimension / width, maxDimension / height);
+                            width = Math.round(width * ratio);
+                            height = Math.round(height * ratio);
+                        }
+
+                        const canvas = document.createElement("canvas");
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext("2d");
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        let quality = 0.88;
+                        let dataUrl = canvas.toDataURL("image/jpeg", quality);
+
+                        // Firestore 문서 용량 제한(1MB) 안전선 확보
+                        while (dataUrl.length > maxBase64Length && quality > 0.4) {
+                            quality -= 0.08;
+                            dataUrl = canvas.toDataURL("image/jpeg", quality);
+                        }
+
+                        // 여전히 크면 해상도를 한 단계 더 줄여 원본 비율 유지
+                        if (dataUrl.length > maxBase64Length) {
+                            const scale = 0.72;
+                            canvas.width = Math.round(width * scale);
+                            canvas.height = Math.round(height * scale);
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            dataUrl = canvas.toDataURL("image/jpeg", 0.72);
+                        }
+
+                        resolve(dataUrl);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // =========================================================================
+        // 6. Firebase 인증 및 실시간 Firestore 구독 (RULE 1, 2, 3 준수)
+        // =========================================================================
+        async function initFirebaseAndSubscriptions() {
+            if (!firebaseConfig) {
+                dbStatusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span class="text-rose-300">클라우드 설정 없음</span>`;
+                checkNicknameBtn.disabled = false;
+                return;
+            }
+
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // RULE 3: 모든 Firestore 쿼리 전에 반드시 인증 완료 대기
+                if (initialAuthToken) {
+                    const cred = await signInWithCustomToken(auth, initialAuthToken);
+                    authUser = cred.user;
+                } else {
+                    const cred = await signInAnonymously(auth);
+                    authUser = cred.user;
+                }
+
+                dbStatusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span class="text-emerald-300">실시간 서버 연결됨</span>`;
+                checkNicknameBtn.disabled = false;
+
+                // RULE 2: 단순 collection() / doc() 실시간 구독 후 JS 메모리에서 정렬/필터링
+                onSnapshot(pubCol("users"), (snap) => {
+                    allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    // 현재 로그인한 유저 정보 최신화
+                    if (currentUser) {
+                        const updated = allUsers.find(u => u.id === currentUser.id);
+                        if (updated) {
+                            currentUser = updated;
+                            updateHeaderUI();
+                            renderAlbum();
+                        }
+                    }
+                    renderRankingList();
+                    renderAdminUsers();
+                    updateAdminSummary();
+                }, () => {
+                    showToast("사용자 데이터 동기화 중 오류가 발생했습니다.");
+                });
+
+                onSnapshot(pubCol("rankings"), (snap) => {
+                    allRankings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    renderRankingList();
+                }, () => {});
+
+                onSnapshot(pubCol("test_records"), (snap) => {
+                    allTestRecords = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    renderAdminUsers();
+                }, () => {});
+
+                onSnapshot(pubCol("album_photos"), (snap) => {
+                    albumPhotos = snap.docs
+                        .map(d => ({ id: d.id, ...d.data() }))
+                        .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+                    updateShopAvailability();
+                    updateHeaderUI();
+                    renderAlbum();
+                    renderAdminPhotoGrid();
+                    updateAdminSummary();
+                }, () => {});
+
+                onSnapshot(pubDoc("app_settings", "background"), (snap) => {
+                    if (snap.exists() && snap.data()?.imageData) {
+                        backgroundImageData = snap.data().imageData;
+                    } else {
+                        backgroundImageData = "";
+                    }
+                    applyBackgroundPhoto();
+                    renderAdminBgPreview();
+                }, () => {});
+
+            } catch (err) {
+                dbStatusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span class="text-rose-300">연결 실패</span>`;
+                showToast("서버 연결에 실패했습니다. 새로고침해 주세요.");
+            }
+        }
+
+        function applyBackgroundPhoto() {
+            if (backgroundImageData) {
+                cinemaBg.style.backgroundImage = `url('${backgroundImageData}')`;
+                cinemaBg.classList.add("has-photo");
+            } else {
+                cinemaBg.style.backgroundImage = "";
+                cinemaBg.classList.remove("has-photo");
+            }
+        }
+
+        // =========================================================================
+        // 7. 2단계 로그인 (닉네임 중복 확인 + 본인확인문자)
+        // =========================================================================
+        function handleCheckNickname() {
+            const nick = splashNicknameInput.value.trim();
+            authStep1Error.classList.add("hidden");
+
+            if (!nick) {
+                authStep1Error.textContent = "닉네임을 입력해주세요.";
+                authStep1Error.classList.remove("hidden");
+                return;
+            }
+            if (nick.length < 1 || nick.length > 16) {
+                authStep1Error.textContent = "닉네임은 1~16자 이내로 입력해주세요.";
+                authStep1Error.classList.remove("hidden");
+                return;
+            }
+
+            pendingAuthNickname = nick;
+            pendingAuthExistingUser = allUsers.find(u => (u.nickname || "").trim().toLowerCase() === nick.toLowerCase()) || null;
+
+            selectedNicknameDisplay.textContent = pendingAuthNickname;
+            verificationTextInput.value = "";
+            authStep2Error.classList.add("hidden");
+
+            if (pendingAuthExistingUser) {
+                authStep2Banner.className = "p-3 rounded-xl text-xs text-left leading-relaxed border border-amber-400/40 bg-amber-500/15 text-amber-200";
+                authStep2Banner.textContent = "기존 사용자입니다. 기존 포인트와 기록을 불러오려면 본인확인문자를 입력해주세요.";
+                completeAuthBtn.textContent = "본인 확인 후 입장하기";
+            } else {
+                authStep2Banner.className = "p-3 rounded-xl text-xs text-left leading-relaxed border border-emerald-400/40 bg-emerald-500/15 text-emerald-200";
+                authStep2Banner.textContent = "사용 가능한 닉네임입니다! 앞으로 재접속할 때 사용할 본인확인문자를 설정해주세요.";
+                completeAuthBtn.textContent = "새 계정 만들고 입장하기";
+            }
+
+            authStep1.classList.add("hidden");
+            authStep2.classList.remove("hidden");
+            setTimeout(() => verificationTextInput.focus(), 60);
+        }
+
+        async function handleCompleteAuth() {
+            if (!authUser || !db) {
+                showToast("서버 연결을 확인 중입니다. 잠시 후 다시 시도해주세요.");
+                return;
+            }
+
+            const vText = verificationTextInput.value.trim();
+            authStep2Error.classList.add("hidden");
+
+            if (!vText) {
+                authStep2Error.textContent = "본인확인문자를 입력해주세요.";
+                authStep2Error.classList.remove("hidden");
+                return;
+            }
+
+            completeAuthBtn.disabled = true;
+
+            try {
+                if (pendingAuthExistingUser) {
+                    // 기존 사용자: 본인확인문자 대조
+                    if (pendingAuthExistingUser.verificationText !== vText) {
+                        authStep2Error.textContent = "본인확인문자가 일치하지 않습니다. 다시 확인해주세요.";
+                        authStep2Error.classList.remove("hidden");
+                        completeAuthBtn.disabled = false;
+                        return;
+                    }
+                    currentUser = pendingAuthExistingUser;
+                    showToast(`${currentUser.nickname}님, 다시 오신 걸 환영해요! 기존 기록을 불러왔습니다.`);
+                } else {
+                    // 신규 사용자 생성
+                    const newId = `u_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+                    const newUserObj = {
+                        id: newId,
+                        nickname: pendingAuthNickname,
+                        verificationText: vText,
+                        points: 0,
+                        yuan: 0,
+                        equippedTitle: TITLES[0].name,
+                        unlockedTitles: [TITLES[0].name],
+                        cards: {},
+                        recentWords: [],
+                        createdAt: Date.now()
+                    };
+                    await setDoc(pubDoc("users", newId), newUserObj);
+                    currentUser = newUserObj;
+                    showToast(`${currentUser.nickname}님 환영합니다! 베이징행 열차에 탑승하셨습니다.`);
+                }
+
+                enterMainApp();
+            } catch (err) {
+                authStep2Error.textContent = "처리 중 오류가 발생했습니다. 다시 시도해주세요.";
+                authStep2Error.classList.remove("hidden");
+            } finally {
+                completeAuthBtn.disabled = false;
+            }
+        }
+
+        function enterMainApp() {
+            splashScreen.classList.add("hidden");
+            adminDashboard.classList.add("hidden");
+            mainApp.classList.remove("hidden");
+            updateHeaderUI();
+            updateShopAvailability();
+            renderAlbum();
+            renderRankingTabs();
+            renderRankingList();
+            switchNav("quiz");
+            triggerWarmBloom(1800);
+        }
+
+        function logoutToSplash() {
+            currentUser = null;
+            pendingAuthNickname = "";
+            pendingAuthExistingUser = null;
+            splashNicknameInput.value = "";
+            verificationTextInput.value = "";
+            authStep2.classList.add("hidden");
+            authStep1.classList.remove("hidden");
+            authStep1Error.classList.add("hidden");
+            authStep2Error.classList.add("hidden");
+            mainApp.classList.add("hidden");
+            adminDashboard.classList.add("hidden");
+            setRandomSplashQuote();
+            splashScreen.classList.remove("hidden");
+        }
+
+        // =========================================================================
+        // 8. 눈 내리는 베이징 밤 캔버스 애니메이션
+        // =========================================================================
+        function initSnowCanvas() {
+            const canvas = document.getElementById("snowCanvas");
+            const ctx = canvas.getContext("2d");
+            let flakes = [];
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                const count = Math.min(70, Math.floor((canvas.width * canvas.height) / 18000));
+                flakes = Array.from({ length: count }, () => ({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    r: Math.random() * 2.1 + 0.7,
+                    speedY: Math.random() * 0.75 + 0.28,
+                    speedX: Math.random() * 0.45 - 0.22,
+                    opacity: Math.random() * 0.5 + 0.2
+                }));
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (const f of flakes) {
+                    ctx.beginPath();
+                    ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 250, 245, ${f.opacity})`;
+                    ctx.fill();
+                    f.y += f.speedY;
+                    f.x += f.speedX + Math.sin(f.y * 0.01) * 0.18;
+                    if (f.y > canvas.height + 5) {
+                        f.y = -5;
+                        f.x = Math.random() * canvas.width;
+                    }
+                    if (f.x > canvas.width + 5) f.x = -5;
+                    if (f.x < -5) f.x = canvas.width + 5;
+                }
+                requestAnimationFrame(draw);
+            }
+
+            window.addEventListener("resize", resize);
+            resize();
+            draw();
+        }
+
+        // =========================================================================
+        // 9. 포인트 · 칭호 (5,000P마다 해금 + ¥100 위안) & 헤더 UI
+        // =========================================================================
+        function getTitleForMilestoneIndex(idx) {
+            if (idx < TITLES.length) return TITLES[idx];
+            const extra = idx - TITLES.length + 1;
+            return {
+                req: idx * 5000,
+                name: `후회 없는 훗날의 우리 Lv.${extra + 1}`,
+                desc: `${(idx * 5000).toLocaleString()}P를 달성한 전설적인 중국어 여정`
+            };
+        }
+
+        async function syncCurrentUserToFirestore(partialData) {
+            if (!authUser || !db || !currentUser) return;
+            try {
+                await updateDoc(pubDoc("users", currentUser.id), partialData);
+            } catch (e) {}
+        }
+
+        async function addPointsAndCheckTitles(pts) {
+            if (!currentUser || pts <= 0) return;
+            const prevMilestone = Math.floor((currentUser.points || 0) / 5000);
+            currentUser.points = (currentUser.points || 0) + pts;
+            const newMilestone = Math.floor(currentUser.points / 5000);
+
+            if (!Array.isArray(currentUser.unlockedTitles)) {
+                currentUser.unlockedTitles = [TITLES[0].name];
+            }
+
+            if (newMilestone > prevMilestone) {
+                const unlockedCount = newMilestone - prevMilestone;
+                const yuanBonus = unlockedCount * 100;
+                currentUser.yuan = (currentUser.yuan || 0) + yuanBonus;
+
+                let latestTitle = null;
+                for (let m = prevMilestone + 1; m <= newMilestone; m++) {
+                    const tObj = getTitleForMilestoneIndex(m);
+                    if (!currentUser.unlockedTitles.includes(tObj.name)) {
+                        currentUser.unlockedTitles.push(tObj.name);
+                    }
+                    latestTitle = tObj;
+                }
+
+                if (latestTitle) {
+                    currentUser.equippedTitle = latestTitle.name;
+                    unlockTitleName.textContent = latestTitle.name;
+                    unlockTitleDesc.textContent = `${latestTitle.desc} (${(newMilestone * 5000).toLocaleString()} P 달성!)`;
+                    unlockYuanReward.textContent = `+¥${yuanBonus} 위안`;
+                    titleUnlockModal.classList.remove("hidden");
+                    triggerWarmBloom(4000);
+                }
+            }
+
+            updateHeaderUI();
+            await syncCurrentUserToFirestore({
+                points: currentUser.points,
+                yuan: currentUser.yuan,
+                equippedTitle: currentUser.equippedTitle,
+                unlockedTitles: currentUser.unlockedTitles
+            });
+        }
+
+        function getValidOwnedCardCount(userObj) {
+            const validIds = new Set(albumPhotos.map(p => p.id));
+            const cards = userObj?.cards || {};
+            return Object.keys(cards).filter(id => validIds.has(id) && cards[id] > 0).length;
+        }
+
+        function updateHeaderUI() {
+            if (!currentUser) return;
+            const pts = currentUser.points || 0;
+            const yuan = currentUser.yuan || 0;
+
+            headerNickname.textContent = currentUser.nickname || "사용자";
+            headerTitleText.textContent = currentUser.equippedTitle || TITLES[0].name;
+            headerPointsLabel.textContent = `${pts.toLocaleString()} P`;
+            headerYuan.textContent = yuan.toLocaleString();
+            shopYuanDisplay.textContent = yuan.toLocaleString();
+
+            const remainder = pts % 5000;
+            const pct = Math.min(100, (remainder / 5000) * 100);
+            const needed = 5000 - remainder;
+            headerProgressBar.style.width = `${pct}%`;
+            headerNextTitleHint.textContent = `(다음 칭호까지 ${needed.toLocaleString()}P)`;
+
+            const ownedCount = getValidOwnedCardCount(currentUser);
+            const totalCount = albumPhotos.length;
+            navAlbumCount.textContent = `${ownedCount}/${totalCount}`;
+            albumProgressText.textContent = `(${ownedCount} / ${totalCount})`;
+
+            drawCardBtn.disabled = yuan < 50 || isDrawingCard || totalCount === 0;
+        }
+
+        // =========================================================================
+        // 10. Gemini API (지수 백오프 · 유도리 채점 · 중복 없는 새 단어 확장)
+        // =========================================================================
+        async function callGeminiJSON(payload, maxRetries = 3) {
+            let delay = 1000;
+            for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                try {
+                    const res = await fetch(GEMINI_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!res.ok) {
+                        if ((res.status === 429 || res.status >= 500) && attempt < maxRetries) {
+                            await new Promise(r => setTimeout(r, delay));
+                            delay *= 2;
+                            continue;
+                        }
+                        throw new Error(`HTTP ${res.status}`);
+                    }
+                    const json = await res.json();
+                    const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!text) throw new Error("Empty response");
+                    const cleaned = text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
+                    return JSON.parse(cleaned);
+                } catch (err) {
+                    if (attempt < maxRetries) {
+                        await new Promise(r => setTimeout(r, delay));
+                        delay *= 2;
+                        continue;
+                    }
+                    throw err;
+                }
+            }
+        }
+
+        async function fetchFreshWordsFromGemini(level, easyNeed, medNeed, hardNeed, excludeWords) {
+            const total = easyNeed + medNeed + hardNeed;
+            if (total <= 0) return { easy: [], medium: [], hard: [] };
+
+            const avoidList = excludeWords.slice(-60).join(", ");
+            const payload = {
+                systemInstruction: {
+                    parts: [{
+                        text: `당신은 HSK 1~9급 공식 어휘 전문가입니다. 반드시 중국어 간체자(简体字)만 사용하세요. 요청된 HSK ${level}급에 맞는 단어를 난이도별(easy ${easyNeed}개, medium ${medNeed}개, hard ${hardNeed}개)로 생성하세요. 각 예문(exCn)에는 반드시 해당 단어(word)가 그대로 포함되어야 합니다.`
+                    }]
+                },
+                contents: [{
+                    role: "user",
+                    parts: [{
+                        text: `HSK ${level}급 새 단어 총 ${total}개(easy ${easyNeed}개, medium ${medNeed}개, hard ${hardNeed}개)를 JSON으로 만들어 주세요. 제외 단어: [${avoidList}]`
+                    }]
+                }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            items: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        diff: { type: "STRING", enum: ["easy", "medium", "hard"] },
+                                        word: { type: "STRING" },
+                                        pinyin: { type: "STRING" },
+                                        meaning: { type: "STRING" },
+                                        synonyms: { type: "ARRAY", items: { type: "STRING" } },
+                                        exCn: { type: "STRING" },
+                                        exKo: { type: "STRING" }
+                                    },
+                                    required: ["diff", "word", "pinyin", "meaning", "synonyms", "exCn", "exKo"]
+                                }
+                            }
+                        },
+                        required: ["items"]
+                    }
+                }
+            };
+
+            const res = await callGeminiJSON(payload, 2);
+            const grouped = { easy: [], medium: [], hard: [] };
+            if (Array.isArray(res?.items)) {
+                for (const it of res.items) {
+                    if (grouped[it.diff] && it.word && it.pinyin && it.meaning && it.exCn && it.exCn.includes(it.word)) {
+                        grouped[it.diff].push([it.word, it.pinyin, it.meaning, it.synonyms || [], it.exCn, it.exKo || ""]);
+                    }
+                }
+            }
+            return grouped;
+        }
+
+        async function gradeMeaningWithGemini(word, pinyin, officialMeaning, synonyms, userAnswer) {
+            const payload = {
+                systemInstruction: {
+                    parts: [{
+                        text: "당신은 유도리 있고 따뜻한 중국어 퀴즈 채점관입니다. 학습자가 입력한 한국어 뜻이 해당 중국어 단어의 원래 의미와 큰 차이가 없는 유사정답(예: '하지만' vs '그러나'/'근데', '기쁘다' vs '즐겁다', 품사 활용형 차이 등)이면 너그럽게 정답(isCorrect: true)으로 인정하세요. 명백히 뜻이 다르면 false로 판정하세요. 피드백(reason)은 한국어로 1문장 이내로 작성하세요."
+                    }]
+                },
+                contents: [{
+                    role: "user",
+                    parts: [{
+                        text: `중국어 단어: ${word} (${pinyin})\n대표 정답: ${officialMeaning}\n유사어 참고: ${synonyms.join(", ")}\n학습자 답안: "${userAnswer}"`
+                    }]
+                }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            isCorrect: { type: "BOOLEAN" },
+                            reason: { type: "STRING" }
+                        },
+                        required: ["isCorrect", "reason"]
+                    }
+                }
+            };
+            return await callGeminiJSON(payload, 2);
+        }
+
+        // =========================================================================
+        // 11. HSK 1~9급 퀴즈 엔진
+        // =========================================================================
+        function renderLevelGrid() {
+            levelGrid.innerHTML = "";
+            for (let lv = 1; lv <= 9; lv++) {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                const active = lv === selectedLevel;
+                btn.className = active
+                    ? "py-2.5 rounded-xl font-bold text-sm bg-gradient-to-br from-rose-600 to-amber-600 text-white shadow-lg border border-amber-300/50 transition-all"
+                    : "py-2.5 rounded-xl font-medium text-sm bg-white/5 hover:bg-white/15 text-zinc-300 border border-white/10 transition-all";
+                btn.textContent = `${lv}급`;
+                btn.addEventListener("click", () => {
+                    selectedLevel = lv;
+                    renderLevelGrid();
+                    updateSetupLabels();
+                });
+                levelGrid.appendChild(btn);
+            }
+            updateSetupLabels();
+        }
+
+        function updateSetupLabels() {
+            levelDescText.textContent = LEVEL_DESCRIPTIONS[selectedLevel] || "";
+            startQuizBtnLabel.textContent = `HSK ${selectedLevel}급 · ${selectedCount}문제 챕터 시작하기`;
+        }
+
+        function shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function getDifficultyDistribution(count) {
+            if (count === 5) return { easy: 2, medium: 2, hard: 1 };
+            if (count === 20) return { easy: 7, medium: 7, hard: 6 };
+            return { easy: 4, medium: 3, hard: 3 };
+        }
+
+        async function startQuizSession() {
+            if (!currentUser) return;
+            quizSetupPanel.classList.add("hidden");
+            quizResultPanel.classList.add("hidden");
+            quizLoadingPanel.classList.remove("hidden");
+
+            const dist = getDifficultyDistribution(selectedCount);
+            const bank = HSK_BANK[selectedLevel];
+            const recentSet = new Set(currentUser.recentWords || []);
+
+            const pickFromPool = (pool, need) => {
+                const unseen = shuffleArray(pool.filter(w => !recentSet.has(w[0])));
+                const seen = shuffleArray(pool.filter(w => recentSet.has(w[0])));
+                return [...unseen, ...seen].slice(0, need);
+            };
+
+            let easyWords = pickFromPool(bank.easy, dist.easy);
+            let medWords = pickFromPool(bank.medium, dist.medium);
+            let hardWords = pickFromPool(bank.hard, dist.hard);
+
+            if (aiExpandToggle.checked) {
+                try {
+                    const exclude = [
+                        ...Array.from(recentSet),
+                        ...easyWords.map(w => w[0]),
+                        ...medWords.map(w => w[0]),
+                        ...hardWords.map(w => w[0])
+                    ];
+                    const fresh = await fetchFreshWordsFromGemini(
+                        selectedLevel,
+                        Math.ceil(dist.easy / 2),
+                        Math.ceil(dist.medium / 2),
+                        Math.ceil(dist.hard / 2),
+                        exclude
+                    );
+                    const mergeFresh = (base, freshArr, targetCount) => {
+                        const used = new Set();
+                        const merged = [];
+                        for (const item of [...freshArr, ...base]) {
+                            if (!used.has(item[0]) && merged.length < targetCount) {
+                                used.add(item[0]);
+                                merged.push(item);
+                            }
+                        }
+                        return merged;
+                    };
+                    easyWords = mergeFresh(easyWords, fresh.easy, dist.easy);
+                    medWords = mergeFresh(medWords, fresh.medium, dist.medium);
+                    hardWords = mergeFresh(hardWords, fresh.hard, dist.hard);
+                } catch (e) {}
+            }
+
+            const orderedRaw = [
+                ...easyWords.map(w => ({ raw: w, diff: "easy" })),
+                ...medWords.map(w => ({ raw: w, diff: "medium" })),
+                ...hardWords.map(w => ({ raw: w, diff: "hard" }))
+            ];
+
+            const typeOffset = Math.floor(Math.random() * 4);
+            activeQuestions = orderedRaw.map((entry, idx) => {
+                const [word, pinyin, meaning, synonyms, exCn, exKo] = entry.raw;
+                return {
+                    diff: entry.diff,
+                    points: DIFF_POINTS[entry.diff],
+                    type: ((idx + typeOffset) % 4) + 1,
+                    word,
+                    pinyin,
+                    meaning,
+                    synonyms: Array.isArray(synonyms) ? synonyms : [],
+                    exCn,
+                    exKo
+                };
+            });
+
+            currentUser.recentWords = Array.from(new Set([...(currentUser.recentWords || []), ...activeQuestions.map(q => q.word)])).slice(-120);
+            syncCurrentUserToFirestore({ recentWords: currentUser.recentWords });
+
+            currentQIndex = 0;
+            sessionCorrect = 0;
+            sessionPoints = 0;
+            sessionDiffStats = {
+                easy: { c: 0, t: dist.easy },
+                medium: { c: 0, t: dist.medium },
+                hard: { c: 0, t: dist.hard }
+            };
+
+            quizLoadingPanel.classList.add("hidden");
+            quizActivePanel.classList.remove("hidden");
+            renderCurrentQuestion();
+        }
+
+        function renderCurrentQuestion() {
+            const q = activeQuestions[currentQIndex];
+            isWaitingNext = false;
+            isGrading = false;
+
+            qFeedbackArea.classList.add("hidden");
+            qInputArea.classList.remove("hidden");
+            qAnswerInput.value = "";
+            qAnswerInput.disabled = false;
+            qSubmitBtn.disabled = false;
+            qSubmitBtn.textContent = "제출하기";
+
+            qLevelBadge.textContent = `HSK ${selectedLevel}급`;
+            qCounterText.textContent = `${currentQIndex + 1} / ${activeQuestions.length}`;
+            qProgressBar.style.width = `${((currentQIndex + 1) / activeQuestions.length) * 100}%`;
+
+            if (q.diff === "easy") {
+                qDiffBadge.textContent = "난이도 하 · +100P";
+                qDiffBadge.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30";
+            } else if (q.diff === "medium") {
+                qDiffBadge.textContent = "난이도 중 · +300P";
+                qDiffBadge.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30";
+            } else {
+                qDiffBadge.textContent = "난이도 상 · +500P";
+                qDiffBadge.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-400/30";
+            }
+
+            qHintDisplay.classList.add("hidden");
+            if (q.type === 1) {
+                qTypeBadge.textContent = "유형 1 · 간체 → 한글 뜻";
+                qInstruction.textContent = "다음 중국어 간체자의 한글 뜻을 자유롭게 적어주세요.";
+                qMainDisplay.textContent = q.word;
+                qMainDisplay.className = "font-sc text-4xl sm:text-5xl font-bold text-white tracking-wider py-2";
+                qAnswerInput.placeholder = "한글 뜻을 입력하세요 (유사정답 인정!)";
+            } else if (q.type === 2) {
+                qTypeBadge.textContent = "유형 2 · 문장 빈칸 채우기";
+                qInstruction.textContent = "해석을 참고해 빈칸(____)에 들어갈 중국어 간체 단어를 적어주세요.";
+                qMainDisplay.textContent = q.exCn.replace(q.word, " ____ ");
+                qMainDisplay.className = "font-sc text-xl sm:text-3xl font-bold text-white leading-relaxed py-2 break-keep";
+                qHintDisplay.textContent = `힌트 해석: ${q.exKo}`;
+                qHintDisplay.classList.remove("hidden");
+                qAnswerInput.placeholder = "빈칸에 들어갈 중국어 간체자를 입력하세요";
+            } else if (q.type === 3) {
+                qTypeBadge.textContent = "유형 3 · 병음 → 한글 뜻";
+                qInstruction.textContent = "다음 한어병음을 보고 알맞은 한글 뜻을 적어주세요.";
+                qMainDisplay.textContent = q.pinyin;
+                qMainDisplay.className = "font-sans text-3xl sm:text-4xl font-bold text-amber-200 tracking-wide py-2";
+                qAnswerInput.placeholder = "한글 뜻을 입력하세요 (유사정답 인정!)";
+            } else {
+                qTypeBadge.textContent = "유형 4 · 병음 → 간체 적기";
+                qInstruction.textContent = "병음과 뜻 힌트를 보고 알맞은 중국어 간체자를 적어주세요.";
+                qMainDisplay.textContent = q.pinyin;
+                qMainDisplay.className = "font-sans text-3xl sm:text-4xl font-bold text-amber-200 tracking-wide py-2";
+                qHintDisplay.textContent = `뜻 힌트: ${q.meaning}`;
+                qHintDisplay.classList.remove("hidden");
+                qAnswerInput.placeholder = "중국어 간체자(简体字)를 입력하세요";
+            }
+
+            setTimeout(() => qAnswerInput.focus(), 80);
+        }
+
+        function normalizeKo(s) {
+            return s.trim().toLowerCase()
+                .replace(/[~.,!?()\[\]\s'"`·]/g, "")
+                .replace(/(하다|이다|되다|해요|어요|아요|다|요|을|를|이|가|은|는|의)$/g, "");
+        }
+
+        function normalizeZh(s) {
+            return s.trim().replace(/[\s.,!?。，！？]/g, "");
+        }
+
+        async function handleAnswerSubmit(isSkip = false) {
+            if (isGrading || isWaitingNext) return;
+            const q = activeQuestions[currentQIndex];
+            const userAns = qAnswerInput.value.trim();
+
+            if (!isSkip && !userAns) {
+                showToast("정답을 입력하거나 '모르겠어요'를 눌러주세요.");
+                qAnswerInput.focus();
+                return;
+            }
+
+            isGrading = true;
+            qAnswerInput.disabled = true;
+            qSubmitBtn.disabled = true;
+
+            let isCorrect = false;
+            let feedbackText = "";
+
+            if (isSkip) {
+                isCorrect = false;
+                feedbackText = "괜찮아요! 린젠칭도 처음엔 다 서툴렀는걸요. 이번 기회에 꼭 기억해 두세요.";
+            } else if (q.type === 2 || q.type === 4) {
+                if (normalizeZh(userAns) === normalizeZh(q.word)) {
+                    isCorrect = true;
+                    feedbackText = "정확한 간체자 표기예요! 이언이 켈리에게 한 걸음 더 가까워졌어요.";
+                } else {
+                    isCorrect = false;
+                    feedbackText = `아쉬워요! 입력하신 "${userAns}" 대신 간체자 "${q.word}"가 정답이에요.`;
+                }
+            } else {
+                const candidates = [q.meaning, ...q.synonyms];
+                const normUser = normalizeKo(userAns);
+                const localMatch = candidates.some(c => {
+                    const normC = normalizeKo(c);
+                    return normUser === normC || (normUser.length >= 2 && normC.length >= 2 && (normC.includes(normUser) || normUser.includes(normC)));
+                });
+
+                if (localMatch) {
+                    isCorrect = true;
+                    feedbackText = "정확해요! 핵심 의미를 아주 깔끔하게 짚어내셨습니다.";
+                } else {
+                    qSubmitBtn.textContent = "AI 채점 중...";
+                    try {
+                        const aiGrade = await gradeMeaningWithGemini(q.word, q.pinyin, q.meaning, q.synonyms, userAns);
+                        isCorrect = !!aiGrade.isCorrect;
+                        feedbackText = aiGrade.reason || (isCorrect ? "유사한 의미로 인정해 드렸어요!" : "아쉽게도 뜻이 조금 달랐어요.");
+                    } catch (e) {
+                        isCorrect = false;
+                        feedbackText = `대표 정답은 "${q.meaning}"입니다.`;
+                    }
+                }
+            }
+
+            if (isCorrect) {
+                sessionCorrect++;
+                sessionPoints += q.points;
+                sessionDiffStats[q.diff].c++;
+                await addPointsAndCheckTitles(q.points);
+                triggerWarmBloom(2200);
+            }
+
+            qInputArea.classList.add("hidden");
+            qFeedbackArea.classList.remove("hidden");
+
+            if (isCorrect) {
+                qFeedbackArea.className = "rounded-2xl p-5 border border-amber-400/50 bg-amber-500/10 space-y-3 animate-fade-up";
+                qFeedbackIcon.textContent = "✨";
+                qFeedbackTitle.textContent = "정답입니다! 세상에 색채가 번집니다";
+                qFeedbackPoints.textContent = `+${q.points} P`;
+                qFeedbackPoints.className = "px-3 py-1 rounded-full text-xs font-bold bg-amber-500/25 text-amber-200 border border-amber-400/40";
+            } else {
+                qFeedbackArea.className = "rounded-2xl p-5 border border-zinc-600/60 bg-zinc-900/80 space-y-3 animate-fade-up";
+                qFeedbackIcon.textContent = "🎞️";
+                qFeedbackTitle.textContent = isSkip ? "정답을 확인해 보세요" : "조금 아쉬워요 (오답)";
+                qFeedbackPoints.textContent = "+0 P";
+                qFeedbackPoints.className = "px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-zinc-400 border border-white/10";
+            }
+
+            qFeedbackMsg.textContent = feedbackText;
+            qReviewWord.textContent = q.word;
+            qReviewPinyin.textContent = q.pinyin;
+            qReviewMeaning.textContent = q.meaning + (q.synonyms.length ? ` (${q.synonyms.slice(0, 3).join(", ")})` : "");
+            qReviewExample.textContent = q.exCn;
+            qReviewExampleKo.textContent = q.exKo;
+            qNextBtn.textContent = currentQIndex === activeQuestions.length - 1 ? "결과 및 순위 확인하기 →" : "다음 문제로 →";
+
+            isGrading = false;
+            isWaitingNext = true;
+            qNextBtn.focus();
+        }
+
+        function goToNextQuestion() {
+            if (currentQIndex < activeQuestions.length - 1) {
+                currentQIndex++;
+                renderCurrentQuestion();
+            } else {
+                finishQuizSession();
+            }
+        }
+
+        async function finishQuizSession() {
+            quizActivePanel.classList.add("hidden");
+            quizResultPanel.classList.remove("hidden");
+
+            const total = activeQuestions.length;
+            const accuracy = Math.round((sessionCorrect / total) * 100);
+
+            document.getElementById("resLevelLabel").textContent = `HSK ${selectedLevel}급 · ${total}문제 챕터 완료`;
+            document.getElementById("resCorrectCount").textContent = `${sessionCorrect} / ${total}`;
+            document.getElementById("resAccuracy").textContent = `${accuracy}%`;
+            document.getElementById("resEarnedPoints").textContent = `+${sessionPoints.toLocaleString()} P`;
+            document.getElementById("resRankLevelNum").textContent = selectedLevel;
+
+            const headlineEl = document.getElementById("resHeadline");
+            const quoteEl = document.getElementById("resMovieQuote");
+            if (accuracy >= 80) {
+                headlineEl.textContent = "이언이 마침내 켈리를 찾았어요!";
+                quoteEl.textContent = "\"세상이 온통 눈부신 색채로 가득 채워졌습니다.\"";
+                triggerWarmBloom(4000);
+            } else if (accuracy >= 50) {
+                headlineEl.textContent = "베이징의 겨울밤에 온기가 돌고 있어요";
+                quoteEl.textContent = "\"차곡차곡 쌓인 기억들이 훗날의 우리를 빛나게 할 거예요.\"";
+            } else {
+                headlineEl.textContent = "서툰 시작도 소중한 인연이 됩니다";
+                quoteEl.textContent = "\"2007년 귀향 열차에서 처음 만난 날처럼, 다시 도전해 봐요!\"";
+            }
+
+            document.getElementById("resDiffBreakdown").innerHTML = `
+                <span class="text-emerald-300">하 ${sessionDiffStats.easy.c}/${sessionDiffStats.easy.t}</span>
+                <span class="text-zinc-600">·</span>
+                <span class="text-amber-300">중 ${sessionDiffStats.medium.c}/${sessionDiffStats.medium.t}</span>
+                <span class="text-zinc-600">·</span>
+                <span class="text-rose-300">상 ${sessionDiffStats.hard.c}/${sessionDiffStats.hard.t}</span>
+            `;
+
+            // Firestore에 테스트 기록 & 급수별 순위 기록 저장
+            if (authUser && db && currentUser) {
+                const now = Date.now();
+                const recordPayload = {
+                    userId: currentUser.id,
+                    nickname: currentUser.nickname,
+                    title: currentUser.equippedTitle || TITLES[0].name,
+                    level: selectedLevel,
+                    correct: sessionCorrect,
+                    total: total,
+                    score: sessionPoints,
+                    accuracy: accuracy,
+                    easyCorrect: sessionDiffStats.easy.c,
+                    easyTotal: sessionDiffStats.easy.t,
+                    medCorrect: sessionDiffStats.medium.c,
+                    medTotal: sessionDiffStats.medium.t,
+                    hardCorrect: sessionDiffStats.hard.c,
+                    hardTotal: sessionDiffStats.hard.t,
+                    timestamp: now
+                };
+
+                try {
+                    await addDoc(pubCol("test_records"), recordPayload);
+                    await addDoc(pubCol("rankings"), recordPayload);
+                } catch (e) {}
+            }
+
+            selectedRankingTab = selectedLevel;
+            renderRankingTabs();
+            renderRankingList();
+        }
+
+        // =========================================================================
+        // 12. 추억 상점 (¥50 원본 랜덤 뽑기) & 앨범 (원본 감상 전용)
+        // =========================================================================
+        function updateShopAvailability() {
+            const count = albumPhotos.length;
+            shopPoolCountBadge.textContent = `총 ${count}장 수록`;
+            if (count === 0) {
+                shopNoPhotoNotice.classList.remove("hidden");
+                shopGachaStage.classList.add("hidden");
+            } else {
+                shopNoPhotoNotice.classList.add("hidden");
+                shopGachaStage.classList.remove("hidden");
+            }
+            if (currentUser) {
+                drawCardBtn.disabled = (currentUser.yuan || 0) < 50 || isDrawingCard || count === 0;
+            }
+        }
+
+        async function handleDrawPhotoCard() {
+            if (!currentUser || isDrawingCard || albumPhotos.length === 0) return;
+            if ((currentUser.yuan || 0) < 50) {
+                showToast("위안(¥)이 부족해요! 퀴즈로 5,000P를 모아 칭호와 ¥100을 받아보세요.");
+                return;
+            }
+
+            isDrawingCard = true;
+            currentUser.yuan = (currentUser.yuan || 0) - 50;
+            updateHeaderUI();
+
+            gachaCardInner.classList.remove("flipped");
+
+            const drawnIdx = Math.floor(Math.random() * albumPhotos.length);
+            const drawn = albumPhotos[drawnIdx];
+            if (!currentUser.cards) currentUser.cards = {};
+            const isDuplicate = !!(currentUser.cards[drawn.id] && currentUser.cards[drawn.id] > 0);
+            currentUser.cards[drawn.id] = (currentUser.cards[drawn.id] || 0) + 1;
+
+            if (isDuplicate) {
+                currentUser.yuan += 15;
+            }
+
+            await syncCurrentUserToFirestore({
+                yuan: currentUser.yuan,
+                cards: currentUser.cards
+            });
+
+            setTimeout(() => {
+                gachaResultImg.src = drawn.imageData;
+                gachaResultImg.classList.remove("photo-bloom");
+                void gachaResultImg.offsetWidth;
+                gachaResultImg.classList.add("photo-bloom");
+
+                gachaResultNum.textContent = `MEMORY #${String(drawnIdx + 1).padStart(2, "0")}`;
+                gachaResultTitle.textContent = drawn.title || `추억 사진 #${drawnIdx + 1}`;
+                gachaResultSub.textContent = isDuplicate
+                    ? `이미 간직한 추억 (보유 ${currentUser.cards[drawn.id]}장 · +¥15 환급)`
+                    : (drawn.comment || "새로운 원본 추억이 앨범에 등록되었습니다!");
+                gachaBadge.textContent = isDuplicate ? `x${currentUser.cards[drawn.id]}` : "NEW!";
+                gachaBadge.className = isDuplicate
+                    ? "absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-bold bg-zinc-800/90 text-amber-300 border border-amber-400/40 z-10"
+                    : "absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-600 text-white shadow z-10";
+
+                gachaCardInner.classList.add("flipped");
+                triggerWarmBloom(3200);
+
+                updateHeaderUI();
+                renderAlbum();
+
+                showToast(isDuplicate ? `중복 사진! ¥15 위안을 돌려받았어요.` : `🎉 새 원본 추억 "${drawn.title || "포토카드"}" 획득!`);
+
+                setTimeout(() => {
+                    isDrawingCard = false;
+                    updateHeaderUI();
+                }, 900);
+            }, 250);
+        }
+
+        function renderAlbum() {
+            if (!currentUser) return;
+            const ownedMap = currentUser.cards || {};
+
+            if (albumPhotos.length === 0) {
+                albumGrid.innerHTML = `
+                    <div class="col-span-full py-14 text-center glass-card rounded-2xl space-y-2">
+                        <p class="text-3xl">📸</p>
+                        <p class="font-serif text-sm sm:text-base text-zinc-200">관리자가 아직 추억 사진을 등록하지 않았습니다.</p>
+                        <p class="text-xs text-zinc-400">사진이 등록되면 추억 상점에서 랜덤으로 뽑아 이곳에 모을 수 있어요.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            albumGrid.innerHTML = albumPhotos.map((photo, idx) => {
+                const count = ownedMap[photo.id] || 0;
+                const owned = count > 0;
+                const numLabel = `MEMORY #${String(idx + 1).padStart(2, "0")}`;
+
+                if (owned) {
+                    return `
+                        <div data-photo-id="${photo.id}" class="album-card group cursor-pointer rounded-2xl overflow-hidden border border-amber-400/40 bg-zinc-900/85 hover:border-amber-400 transition-all hover:-translate-y-1 shadow-lg">
+                            <div class="relative aspect-[16/10] bg-black overflow-hidden">
+                                <img src="${photo.imageData}" alt="${escapeHtml(photo.title || numLabel)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <span class="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/70 text-[10px] font-bold text-amber-300 tracking-wider backdrop-blur-sm">${numLabel}</span>
+                                <span class="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-rose-600/90 text-[10px] font-bold text-white shadow">x${count}</span>
+                            </div>
+                            <div class="p-3.5 space-y-1">
+                                <h4 class="font-serif text-sm font-bold text-white truncate">${escapeHtml(photo.title || `추억 사진 #${idx + 1}`)}</h4>
+                                <p class="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">${escapeHtml(photo.comment || "《后来的我们》 소중한 원본 기억")}</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="rounded-2xl overflow-hidden border border-white/10 bg-zinc-950/75 opacity-80">
+                            <div class="relative aspect-[16/10] bg-zinc-900 flex flex-col items-center justify-center">
+                                <span class="text-2xl">🔒</span>
+                                <p class="text-[11px] font-semibold text-zinc-400 tracking-widest mt-1">${numLabel}</p>
+                            </div>
+                            <div class="p-3.5 space-y-1">
+                                <h4 class="font-serif text-sm font-semibold text-zinc-400">아직 현상되지 않은 기억</h4>
+                                <p class="text-[11px] text-zinc-500">추억 상점에서 ¥50 위안으로 뽑아보세요.</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            }).join("");
+        }
+
+        function openLightbox(photoId) {
+            const idx = albumPhotos.findIndex(p => p.id === photoId);
+            if (idx < 0) return;
+            const photo = albumPhotos[idx];
+            lightboxImg.src = photo.imageData;
+            lightboxSceneTag.textContent = `MEMORY #${String(idx + 1).padStart(2, "0")}`;
+            lightboxCountTag.textContent = `보유 ${(currentUser?.cards?.[photoId] || 1)}장`;
+            lightboxTitle.textContent = photo.title || `추억 사진 #${idx + 1}`;
+            lightboxDesc.textContent = photo.comment || "《后来的我们》 소중한 원본 기억";
+            lightboxModal.classList.remove("hidden");
+        }
+
+        // =========================================================================
+        // 13. 전체 사용자 실시간 순위표 (전체 누적 포인트 + HSK 1~9급별)
+        // =========================================================================
+        function renderRankingTabs() {
+            const tabs = [
+                { key: "total", label: "🌟 전체 누적" },
+                ...Array.from({ length: 9 }, (_, i) => ({ key: i + 1, label: `HSK ${i + 1}급` }))
+            ];
+            rankingLevelTabs.innerHTML = "";
+            tabs.forEach(t => {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                const active = selectedRankingTab === t.key;
+                btn.className = active
+                    ? "px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-rose-600 to-amber-600 text-white shrink-0 shadow"
+                    : "px-4 py-2 rounded-xl text-xs sm:text-sm font-medium bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 shrink-0";
+                btn.textContent = t.label;
+                btn.addEventListener("click", () => {
+                    selectedRankingTab = t.key;
+                    renderRankingTabs();
+                    renderRankingList();
+                });
+                rankingLevelTabs.appendChild(btn);
+            });
+        }
+
+        function renderRankingList() {
+            if (selectedRankingTab === "total") {
+                const sortedUsers = [...allUsers]
+                    .sort((a, b) => ((b.points || 0) - (a.points || 0)) || ((a.createdAt || 0) - (b.createdAt || 0)))
+                    .slice(0, 50);
+
+                if (sortedUsers.length === 0) {
+                    rankingListContainer.innerHTML = `
+                        <div class="py-12 text-center glass-card rounded-2xl text-sm text-zinc-400">
+                            아직 등록된 사용자가 없습니다.
+                        </div>
+                    `;
+                    return;
+                }
+
+                rankingListContainer.innerHTML = sortedUsers.map((u, idx) => {
+                    const rank = idx + 1;
+                    const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `${rank}`;
+                    const isMe = currentUser && u.id === currentUser.id;
+                    const cardCnt = getValidOwnedCardCount(u);
+                    return `
+                        <div class="glass-card rounded-2xl px-4 py-3.5 flex items-center justify-between gap-3 ${isMe ? "border-amber-400/70 bg-amber-500/15 shadow-[0_0_20px_rgba(245,158,11,0.15)]" : ""}">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center font-bold text-sm shrink-0 ${rank <= 3 ? "text-lg" : "text-zinc-300"}">
+                                    ${medal}
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <span class="font-bold text-sm text-white truncate">${escapeHtml(u.nickname)}</span>
+                                        ${isMe ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-400 text-zinc-950 font-bold">나</span>` : ""}
+                                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/15 border border-rose-400/30 text-rose-200 truncate max-w-[140px]">
+                                            ${escapeHtml(u.equippedTitle || TITLES[0].name)}
+                                        </span>
+                                    </div>
+                                    <p class="text-[11px] text-zinc-400 mt-0.5">
+                                        보유 위안 ¥${(u.yuan || 0).toLocaleString()} · 수집 포토카드 ${cardCnt}장
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <p class="text-base font-bold text-amber-300">${(u.points || 0).toLocaleString()} P</p>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+                return;
+            }
+
+            // HSK 1~9급별 순위표
+            const filtered = allRankings
+                .filter(r => Number(r.level) === Number(selectedRankingTab))
+                .sort((a, b) => (b.score - a.score) || (b.accuracy - a.accuracy) || (b.correct - a.correct))
+                .slice(0, 50);
+
+            if (filtered.length === 0) {
+                rankingListContainer.innerHTML = `
+                    <div class="py-12 text-center glass-card rounded-2xl space-y-2">
+                        <p class="text-2xl">🚆</p>
+                        <p class="font-serif text-sm text-zinc-300">아직 HSK ${selectedRankingTab}급 순위표에 등록된 기록이 없어요.</p>
+                        <p class="text-xs text-zinc-500">첫 번째 주인공이 되어 그 시절 베이징의 기록을 남겨보세요!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            rankingListContainer.innerHTML = filtered.map((r, idx) => {
+                const rank = idx + 1;
+                const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `${rank}`;
+                const isMe = currentUser && r.userId === currentUser.id;
+                return `
+                    <div class="glass-card rounded-2xl px-4 py-3.5 flex items-center justify-between gap-3 ${isMe ? "border-amber-400/70 bg-amber-500/15" : ""}">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center font-bold text-sm shrink-0 ${rank <= 3 ? "text-lg" : "text-zinc-300"}">
+                                ${medal}
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="font-bold text-sm text-white truncate">${escapeHtml(r.nickname)}</span>
+                                    ${isMe ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-400 text-zinc-950 font-bold">나</span>` : ""}
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/15 border border-rose-400/30 text-rose-200 truncate max-w-[140px]">
+                                        ${escapeHtml(r.title || TITLES[0].name)}
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-zinc-400 mt-0.5">
+                                    맞춘 개수 ${r.correct}/${r.total} · 정확도 ${r.accuracy}% · ${formatDateTime(r.timestamp)}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <p class="text-base font-bold text-amber-300">${Number(r.score || 0).toLocaleString()} P</p>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        // =========================================================================
+        // 14. 칭호 보관함 모달
+        // =========================================================================
+        function openTitleListModal() {
+            if (!currentUser) return;
+            const unlockedSet = new Set(currentUser.unlockedTitles || [TITLES[0].name]);
+            const maxMilestone = Math.max(TITLES.length - 1, Math.floor((currentUser.points || 0) / 5000));
+            const displayTitles = [];
+            for (let i = 0; i <= maxMilestone; i++) {
+                displayTitles.push(getTitleForMilestoneIndex(i));
+            }
+
+            titleListContainer.innerHTML = displayTitles.map(t => {
+                const unlocked = unlockedSet.has(t.name) || (currentUser.points || 0) >= t.req;
+                const equipped = currentUser.equippedTitle === t.name;
+                return `
+                    <div class="p-3.5 rounded-2xl border ${equipped ? "border-amber-400 bg-amber-500/15" : unlocked ? "border-white/15 bg-white/5" : "border-white/5 bg-black/40 opacity-55"} flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-bold ${unlocked ? "text-white" : "text-zinc-400"}">${escapeHtml(t.name)}</span>
+                                <span class="text-[10px] text-zinc-400">${t.req.toLocaleString()} P</span>
+                            </div>
+                            <p class="text-[11px] text-zinc-400 mt-0.5">${escapeHtml(t.desc)}</p>
+                        </div>
+                        ${unlocked
+                            ? (equipped
+                                ? `<span class="px-2.5 py-1 rounded-lg bg-amber-400/20 text-amber-300 text-xs font-bold shrink-0">장착중</span>`
+                                : `<button data-equip-title="${escapeHtml(t.name)}" type="button" class="equip-title-btn px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold shrink-0">장착</button>`)
+                            : `<span class="text-xs text-zinc-500 shrink-0">🔒 잠김</span>`
+                        }
+                    </div>
+                `;
+            }).join("");
+
+            titleListModal.classList.remove("hidden");
+        }
+
+        // =========================================================================
+        // 15. 관리자 전용 대시보드 (원본 사진 무제한 관리 + 사용자/기록 열람)
+        // =========================================================================
+        function updateAdminSummary() {
+            adminSummaryText.textContent = `전체 회원 ${allUsers.length}명 · 등록된 원본 사진 ${albumPhotos.length}장`;
+            adminPhotoCountLabel.textContent = `(${albumPhotos.length}장)`;
+        }
+
+        function renderAdminBgPreview() {
+            if (backgroundImageData) {
+                adminBgPreviewWrap.innerHTML = `<img src="${backgroundImageData}" alt="배경 원본 사진" class="w-full h-full object-cover">`;
+            } else {
+                adminBgPreviewWrap.innerHTML = `<span class="text-xs text-zinc-400">설정된 배경 사진이 없습니다 (기본 시네마틱 겨울밤 배경 사용 중)</span>`;
+            }
+        }
+
+        function renderAdminPhotoGrid() {
+            if (albumPhotos.length === 0) {
+                adminPhotoGrid.innerHTML = `
+                    <div class="col-span-full py-12 text-center glass-card rounded-2xl text-xs sm:text-sm text-zinc-400">
+                        아직 업로드된 앨범 사진이 없습니다. 우측 상단 버튼으로 원본 사진을 추가해 보세요!
+                    </div>
+                `;
+                return;
+            }
+
+            adminPhotoGrid.innerHTML = albumPhotos.map((photo, idx) => `
+                <div class="glass-card rounded-2xl overflow-hidden flex flex-col border border-white/15">
+                    <div class="relative aspect-[16/10] bg-black overflow-hidden">
+                        <img src="${photo.imageData}" alt="${escapeHtml(photo.title || "")}" class="w-full h-full object-cover">
+                        <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/75 text-[10px] font-bold text-amber-300">#${idx + 1}</span>
+                    </div>
+                    <div class="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
+                        <div class="space-y-2">
+                            <input
+                                type="text"
+                                data-edit-title="${photo.id}"
+                                value="${escapeHtml(photo.title || "")}"
+                                placeholder="장면 제목 입력"
+                                class="w-full px-3 py-1.5 rounded-lg bg-black/50 border border-white/15 text-xs text-white focus:outline-none focus:border-amber-400"
+                            >
+                            <input
+                                type="text"
+                                data-edit-comment="${photo.id}"
+                                value="${escapeHtml(photo.comment || "")}"
+                                placeholder="짧은 코멘트 / 명대사 입력"
+                                class="w-full px-3 py-1.5 rounded-lg bg-black/50 border border-white/15 text-xs text-zinc-200 focus:outline-none focus:border-amber-400"
+                            >
+                        </div>
+                        <div class="flex gap-1.5 pt-1">
+                            <button type="button" data-save-photo="${photo.id}" class="flex-1 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 text-xs font-semibold">
+                                저장
+                            </button>
+                            <button type="button" data-delete-photo="${photo.id}" class="px-3 py-1.5 rounded-lg bg-rose-600/20 hover:bg-rose-600/40 border border-rose-400/40 text-rose-200 text-xs font-semibold">
+                                삭제
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function renderAdminUsers() {
+            const keyword = (adminUserSearchInput.value || "").trim().toLowerCase();
+            const filtered = allUsers
+                .filter(u => {
+                    if (!keyword) return true;
+                    return (u.nickname || "").toLowerCase().includes(keyword)
+                        || (u.verificationText || "").toLowerCase().includes(keyword);
+                })
+                .sort((a, b) => (b.points || 0) - (a.points || 0));
+
+            if (filtered.length === 0) {
+                adminUsersList.innerHTML = `
+                    <div class="py-10 text-center glass-card rounded-2xl text-xs sm:text-sm text-zinc-400">
+                        조건에 맞는 사용자가 없습니다.
+                    </div>
+                `;
+                return;
+            }
+
+            adminUsersList.innerHTML = filtered.map(u => {
+                const recordCount = allTestRecords.filter(r => r.userId === u.id).length;
+                const cardCnt = getValidOwnedCardCount(u);
+                return `
+                    <div data-admin-user-id="${u.id}" class="admin-user-row cursor-pointer glass-card hover:border-amber-400/50 rounded-2xl p-4 transition-all">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                            <div class="space-y-1 min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-bold text-sm sm:text-base text-white">${escapeHtml(u.nickname)}</span>
+                                    <span class="px-2 py-0.5 rounded-md bg-white/10 border border-white/15 text-[11px] text-amber-200">
+                                        본인확인문자: <strong>${escapeHtml(u.verificationText || "-")}</strong>
+                                    </span>
+                                    <span class="px-2 py-0.5 rounded-full bg-rose-500/20 border border-rose-400/30 text-[10px] text-rose-200">
+                                        ${escapeHtml(u.equippedTitle || TITLES[0].name)}
+                                    </span>
+                                </div>
+                                <p class="text-[11px] text-zinc-400">
+                                    가입일: ${formatDateTime(u.createdAt)} · 수집 포토카드 ${cardCnt}장 · 테스트 ${recordCount}회
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-3 shrink-0">
+                                <div class="text-right">
+                                    <p class="text-sm sm:text-base font-bold text-amber-300">${(u.points || 0).toLocaleString()} P</p>
+                                    <p class="text-[11px] text-zinc-400">¥${(u.yuan || 0).toLocaleString()} 위안</p>
+                                </div>
+                                <span class="text-xs px-2.5 py-1.5 rounded-lg bg-white/10 text-zinc-200">기록 보기 →</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function openAdminUserDetail(userId) {
+            const u = allUsers.find(x => x.id === userId);
+            if (!u) return;
+
+            const records = allTestRecords
+                .filter(r => r.userId === userId)
+                .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            adminDetailUserName.textContent = `${u.nickname}님의 테스트 기록 (${records.length}건)`;
+            adminDetailUserMeta.textContent = `본인확인문자: ${u.verificationText || "-"} · 누적 ${(u.points || 0).toLocaleString()}P · 보유 ¥${(u.yuan || 0).toLocaleString()} · 칭호: ${u.equippedTitle || TITLES[0].name}`;
+
+            if (records.length === 0) {
+                adminDetailRecordsList.innerHTML = `
+                    <div class="py-10 text-center glass-card rounded-2xl text-xs sm:text-sm text-zinc-400">
+                        아직 완료한 HSK 테스트 기록이 없습니다.
+                    </div>
+                `;
+            } else {
+                adminDetailRecordsList.innerHTML = records.map(r => `
+                    <div class="glass-card rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div class="space-y-0.5">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-200 text-xs font-bold">HSK ${r.level}급</span>
+                                <span class="text-xs text-zinc-300 font-semibold">${r.total}문항 · 정답 ${r.correct}개 (${r.accuracy}%)</span>
+                            </div>
+                            <p class="text-[11px] text-zinc-400">
+                                ${formatDateTime(r.timestamp)} · 하 ${r.easyCorrect ?? "-"}/${r.easyTotal ?? "-"} · 중 ${r.medCorrect ?? "-"}/${r.medTotal ?? "-"} · 상 ${r.hardCorrect ?? "-"}/${r.hardTotal ?? "-"}
+                            </p>
+                        </div>
+                        <span class="text-sm font-bold text-amber-300 shrink-0">+${Number(r.score || 0).toLocaleString()} P</span>
+                    </div>
+                `).join("");
+            }
+
+            adminUserDetailModal.classList.remove("hidden");
+        }
+
+        // =========================================================================
+        // 16. 네비게이션 및 이벤트 바인딩
+        // =========================================================================
+        function switchNav(target) {
+            Object.entries(views).forEach(([key, el]) => {
+                el.classList.toggle("hidden", key !== target);
+            });
+            document.querySelectorAll(".nav-tab").forEach(btn => {
+                const active = btn.getAttribute("data-nav") === target;
+                btn.className = active
+                    ? "nav-tab flex flex-col items-center justify-center gap-0.5 py-2 px-1 rounded-xl transition-all bg-gradient-to-r from-rose-600/90 to-amber-600/90 text-white shadow"
+                    : "nav-tab flex flex-col items-center justify-center gap-0.5 py-2 px-1 rounded-xl transition-all text-zinc-300 hover:text-white hover:bg-white/5";
+            });
+            if (target === "ranking") {
+                renderRankingTabs();
+                renderRankingList();
+            } else if (target === "album") {
+                renderAlbum();
+            } else if (target === "shop") {
+                updateShopAvailability();
+                updateHeaderUI();
+            }
+        }
+
+        function setRandomSplashQuote() {
+            const q = SPLASH_QUOTES[Math.floor(Math.random() * SPLASH_QUOTES.length)];
+            splashQuote.textContent = `"${q}"`;
+        }
+
+        // 2단계 로그인 이벤트
+        checkNicknameBtn.addEventListener("click", handleCheckNickname);
+        splashNicknameInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") handleCheckNickname();
+        });
+        document.getElementById("backToStep1Btn").addEventListener("click", () => {
+            authStep2.classList.add("hidden");
+            authStep1.classList.remove("hidden");
+            splashNicknameInput.focus();
+        });
+        completeAuthBtn.addEventListener("click", handleCompleteAuth);
+        verificationTextInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") handleCompleteAuth();
+        });
+        document.getElementById("logoutBtn").addEventListener("click", logoutToSplash);
+
+        // 관리자 인증 모달 이벤트
+        document.getElementById("openAdminAuthBtn").addEventListener("click", () => {
+            adminPasswordInput.value = "";
+            adminAuthError.classList.add("hidden");
+            adminAuthModal.classList.remove("hidden");
+            setTimeout(() => adminPasswordInput.focus(), 60);
+        });
+        document.getElementById("closeAdminAuthModalBtn").addEventListener("click", () => {
+            adminAuthModal.classList.add("hidden");
+        });
+        // 오직 숫자만 입력 가능 (공백 및 문자 즉시 제거)
+        adminPasswordInput.addEventListener("input", () => {
+            adminPasswordInput.value = adminPasswordInput.value.replace(/[^0-9]/g, "");
+        });
+        const verifyAdminPassword = () => {
+            const val = adminPasswordInput.value;
+            if (val === ADMIN_PASSWORD) {
+                adminAuthModal.classList.add("hidden");
+                splashScreen.classList.add("hidden");
+                mainApp.classList.add("hidden");
+                adminDashboard.classList.remove("hidden");
+                renderAdminBgPreview();
+                renderAdminPhotoGrid();
+                renderAdminUsers();
+                updateAdminSummary();
+                showToast("관리자 대시보드에 입장했습니다.");
+            } else {
+                adminAuthError.textContent = "비밀번호가 올바르지 않습니다.";
+                adminAuthError.classList.remove("hidden");
+                adminPasswordInput.value = "";
+                adminPasswordInput.focus();
+            }
+        };
+        document.getElementById("submitAdminAuthBtn").addEventListener("click", verifyAdminPassword);
+        adminPasswordInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") verifyAdminPassword();
+        });
+
+        // 관리자 대시보드 탭 & 나가기
+        document.getElementById("exitAdminBtn").addEventListener("click", () => {
+            adminDashboard.classList.add("hidden");
+            setRandomSplashQuote();
+            splashScreen.classList.remove("hidden");
+        });
+        document.querySelectorAll(".admin-tab-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const target = btn.getAttribute("data-admin-tab");
+                adminTabPhotos.classList.toggle("hidden", target !== "photos");
+                adminTabUsers.classList.toggle("hidden", target !== "users");
+                document.querySelectorAll(".admin-tab-btn").forEach(b => {
+                    const active = b.getAttribute("data-admin-tab") === target;
+                    b.className = active
+                        ? "admin-tab-btn py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow"
+                        : "admin-tab-btn py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium text-zinc-300 hover:text-white hover:bg-white/5";
+                });
+            });
+        });
+
+        // 관리자: 배경 사진 업로드 & 초기화
+        document.getElementById("adminUploadBgBtn").addEventListener("click", () => {
+            adminBgInput.value = "";
+            adminBgInput.click();
+        });
+        adminBgInput.addEventListener("change", async (e) => {
+            const file = e.target.files?.[0];
+            if (!file || !authUser || !db) return;
+            try {
+                showToast("배경 원본 사진을 저장 중입니다...");
+                const dataUrl = await compressOriginalImageToDataUrl(file, 1440, 820000);
+                await setDoc(pubDoc("app_settings", "background"), {
+                    imageData: dataUrl,
+                    updatedAt: Date.now()
+                });
+                showToast("배경 원본 사진이 적용되었습니다!");
+            } catch (err) {
+                showToast("배경 사진 업로드에 실패했습니다.");
+            }
+        });
+        document.getElementById("adminResetBgBtn").addEventListener("click", () => {
+            openConfirmModal("배경 사진 초기화", "등록된 배경 사진을 삭제하고 기본 시네마틱 배경으로 되돌리시겠습니까?", async () => {
+                if (!authUser || !db) return;
+                await deleteDoc(pubDoc("app_settings", "background"));
+                showToast("기본 배경으로 되돌렸습니다.");
+            });
+        });
+
+        // 관리자: 앨범 원본 사진 무제한 다중 업로드
+        document.getElementById("adminUploadAlbumBtn").addEventListener("click", () => {
+            adminAlbumUploadInput.value = "";
+            adminAlbumUploadInput.click();
+        });
+        adminAlbumUploadInput.addEventListener("change", async (e) => {
+            const files = Array.from(e.target.files || []).filter(f => f.type.startsWith("image/"));
+            if (files.length === 0 || !authUser || !db) return;
+
+            adminUploadProgress.classList.remove("hidden");
+            let successCount = 0;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                adminUploadProgressText.textContent = `원본 사진 업로드 중 (${i + 1} / ${files.length})...`;
+                try {
+                    const dataUrl = await compressOriginalImageToDataUrl(file, 1280, 780000);
+                    const cleanName = file.name.replace(/\.[^/.]+$/, "");
+                    await addDoc(pubCol("album_photos"), {
+                        imageData: dataUrl,
+                        title: cleanName || `추억 사진`,
+                        comment: "",
+                        createdAt: Date.now() + i
+                    });
+                    successCount++;
+                } catch (err) {}
+            }
+
+            adminUploadProgress.classList.add("hidden");
+            showToast(`📷 원본 사진 ${successCount}장이 앨범에 등록되었습니다!`);
+        });
+
+        // 관리자: 앨범 사진 제목/코멘트 저장 및 삭제
+        adminPhotoGrid.addEventListener("click", async (e) => {
+            const saveBtn = e.target.closest("button[data-save-photo]");
+            if (saveBtn && authUser && db) {
+                const id = saveBtn.getAttribute("data-save-photo");
+                const titleInput = adminPhotoGrid.querySelector(`input[data-edit-title="${id}"]`);
+                const commentInput = adminPhotoGrid.querySelector(`input[data-edit-comment="${id}"]`);
+                try {
+                    await updateDoc(pubDoc("album_photos", id), {
+                        title: (titleInput?.value || "").trim(),
+                        comment: (commentInput?.value || "").trim()
+                    });
+                    showToast("사진 정보가 저장되었습니다.");
+                } catch (err) {
+                    showToast("저장에 실패했습니다.");
+                }
+                return;
+            }
+
+            const delBtn = e.target.closest("button[data-delete-photo]");
+            if (delBtn && authUser && db) {
+                const id = delBtn.getAttribute("data-delete-photo");
+                openConfirmModal("사진 삭제", "이 원본 사진을 앨범과 상점에서 완전히 삭제하시겠습니까?", async () => {
+                    try {
+                        await deleteDoc(pubDoc("album_photos", id));
+                        showToast("사진이 삭제되었습니다.");
+                    } catch (err) {
+                        showToast("삭제에 실패했습니다.");
+                    }
+                });
+            }
+        });
+
+        // 관리자: 사용자 검색 및 상세 기록 열람
+        adminUserSearchInput.addEventListener("input", renderAdminUsers);
+        adminUsersList.addEventListener("click", (e) => {
+            const row = e.target.closest(".admin-user-row");
+            if (!row) return;
+            openAdminUserDetail(row.getAttribute("data-admin-user-id"));
+        });
+        document.getElementById("closeAdminDetailBtn").addEventListener("click", () => {
+            adminUserDetailModal.classList.add("hidden");
+        });
+        adminUserDetailModal.addEventListener("click", (e) => {
+            if (e.target === adminUserDetailModal) adminUserDetailModal.classList.add("hidden");
+        });
+
+        // 공용 확인 모달
+        document.getElementById("confirmCancelBtn").addEventListener("click", () => {
+            customConfirmModal.classList.add("hidden");
+            confirmCallback = null;
+        });
+        document.getElementById("confirmOkBtn").addEventListener("click", async () => {
+            customConfirmModal.classList.add("hidden");
+            if (typeof confirmCallback === "function") {
+                const fn = confirmCallback;
+                confirmCallback = null;
+                await fn();
+            }
+        });
+
+        // 일반 사용자 탭 & 퀴즈 이벤트
+        document.querySelectorAll(".nav-tab").forEach(btn => {
+            btn.addEventListener("click", () => switchNav(btn.getAttribute("data-nav")));
+        });
+        document.querySelectorAll(".count-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                selectedCount = Number(btn.getAttribute("data-count"));
+                document.querySelectorAll(".count-btn").forEach(b => {
+                    const active = Number(b.getAttribute("data-count")) === selectedCount;
+                    b.className = active
+                        ? "count-btn py-3 rounded-2xl border border-amber-400 bg-amber-500/20 text-sm font-bold text-amber-200 transition-all shadow"
+                        : "count-btn py-3 rounded-2xl border border-white/15 bg-white/5 hover:bg-white/10 text-sm font-semibold text-zinc-300 transition-all";
+                });
+                updateSetupLabels();
+            });
+        });
+
+        document.getElementById("startQuizBtn").addEventListener("click", startQuizSession);
+        document.getElementById("quitQuizBtn").addEventListener("click", () => {
+            quizActivePanel.classList.add("hidden");
+            quizSetupPanel.classList.remove("hidden");
+        });
+        document.getElementById("qSpeakBtn").addEventListener("click", () => {
+            const q = activeQuestions[currentQIndex];
+            if (q) speakChinese(q.word);
+        });
+        qSubmitBtn.addEventListener("click", () => handleAnswerSubmit(false));
+        document.getElementById("qSkipBtn").addEventListener("click", () => handleAnswerSubmit(true));
+        qNextBtn.addEventListener("click", goToNextQuestion);
+        qAnswerInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                handleAnswerSubmit(false);
+            }
+        });
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && isWaitingNext && !quizActivePanel.classList.contains("hidden") && titleUnlockModal.classList.contains("hidden")) {
+                e.preventDefault();
+                goToNextQuestion();
+            }
+        });
+
+        document.getElementById("resRetryBtn").addEventListener("click", () => {
+            quizResultPanel.classList.add("hidden");
+            quizSetupPanel.classList.remove("hidden");
+        });
+        document.getElementById("resGoRankingBtn").addEventListener("click", () => switchNav("ranking"));
+        document.getElementById("resGoShopBtn").addEventListener("click", () => switchNav("shop"));
+
+        // 상점 & 앨범 & 라이트박스
+        drawCardBtn.addEventListener("click", handleDrawPhotoCard);
+        document.getElementById("albumToShopBtn").addEventListener("click", () => switchNav("shop"));
+        albumGrid.addEventListener("click", (e) => {
+            const cardEl = e.target.closest(".album-card");
+            if (!cardEl) return;
+            openLightbox(cardEl.getAttribute("data-photo-id"));
+        });
+        document.getElementById("closeLightboxBtn").addEventListener("click", () => lightboxModal.classList.add("hidden"));
+        lightboxModal.addEventListener("click", (e) => {
+            if (e.target === lightboxModal) lightboxModal.classList.add("hidden");
+        });
+
+        // 칭호 모달
+        document.getElementById("closeUnlockModalBtn").addEventListener("click", () => titleUnlockModal.classList.add("hidden"));
+        document.getElementById("openTitleModalBtn").addEventListener("click", openTitleListModal);
+        document.getElementById("closeTitleListModalBtn").addEventListener("click", () => titleListModal.classList.add("hidden"));
+        titleListContainer.addEventListener("click", async (e) => {
+            const btn = e.target.closest(".equip-title-btn");
+            if (!btn || !currentUser) return;
+            currentUser.equippedTitle = btn.getAttribute("data-equip-title");
+            updateHeaderUI();
+            await syncCurrentUserToFirestore({ equippedTitle: currentUser.equippedTitle });
+            openTitleListModal();
+            showToast(`칭호 "${currentUser.equippedTitle}" 장착 완료!`);
+        });
+
+        // =========================================================================
+        // 17. 앱 부트스트랩 (Window Onload)
+        // =========================================================================
+        window.onload = function () {
+            setRandomSplashQuote();
+            renderLevelGrid();
+            renderRankingTabs();
+            initSnowCanvas();
+            initFirebaseAndSubscriptions();
+        };
+    </script>
+</body>
+</html>
